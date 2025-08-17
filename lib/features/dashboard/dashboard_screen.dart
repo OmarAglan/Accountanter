@@ -1,17 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:intl/intl.dart';
+import 'package:accountanter/data/database.dart';
 import 'package:accountanter/theme/app_colors.dart';
 import 'widgets/kpi_card.dart';
 import 'widgets/quick_actions.dart';
 import 'widgets/action_item_card.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  final AppDatabase _database = AppDatabase.instance;
+  late Future<KpiData> _kpiDataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _kpiDataFuture = _loadKpiData();
+  }
+
+  Future<KpiData> _loadKpiData() async {
+    final results = await Future.wait([
+      _database.getTotalReceivables(),
+      _database.getTotalPayables(),
+      _database.getActiveClientsCount(),
+      _database.getOverdueInvoicesCount(),
+    ]);
+    return KpiData(
+      totalReceivables: results[0] as double,
+      totalPayables: results[1] as double,
+      activeClients: results[2] as int,
+      overdueInvoices: results[3] as int,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // --- FIX: Changed ListView back to Column ---
-    // The parent SingleChildScrollView in main_screen.dart will handle scrolling.
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -30,61 +59,79 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  // ... (All other methods remain exactly the same) ...
-
   Widget _buildKpiGrid() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        int crossAxisCount = 4;
-        if (constraints.maxWidth < 1200) crossAxisCount = 2;
-        if (constraints.maxWidth < 600) crossAxisCount = 1;
+    return FutureBuilder<KpiData>(
+      future: _kpiDataFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        if (!snapshot.hasData) {
+          return const Center(child: Text('No data available.'));
+        }
 
-        return GridView.count(
-          crossAxisCount: crossAxisCount,
-          crossAxisSpacing: 24,
-          mainAxisSpacing: 24,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: (crossAxisCount == 1) ? 3.0 : 2.0,
-          children: const [
-            KpiCard(
-              title: 'Total Receivables',
-              value: '\$47,890',
-              change: '+12.5%',
-              isPositiveChange: true,
-              icon: LucideIcons.dollarSign,
-              borderColor: AppColors.success,
-            ),
-            KpiCard(
-              title: 'Total Payables',
-              value: '\$12,340',
-              change: '-8.2%',
-              isPositiveChange: false,
-              icon: LucideIcons.trendingUp,
-              borderColor: AppColors.warning,
-            ),
-            KpiCard(
-              title: 'Overdue Invoices',
-              value: '3',
-              change: '+1',
-              isPositiveChange: false,
-              icon: LucideIcons.triangleAlert,
-              borderColor: AppColors.destructive,
-            ),
-            KpiCard(
-              title: 'Active Clients',
-              value: '47',
-              change: '+3',
-              isPositiveChange: true,
-              icon: LucideIcons.users,
-              borderColor: AppColors.primary,
-            ),
-          ],
+        final kpiData = snapshot.data!;
+        final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            int crossAxisCount = 4;
+            if (constraints.maxWidth < 1200) crossAxisCount = 2;
+            if (constraints.maxWidth < 600) crossAxisCount = 1;
+
+            return GridView.count(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: 24,
+              mainAxisSpacing: 24,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              childAspectRatio: (crossAxisCount == 1) ? 3.0 : 2.0,
+              children: [
+                KpiCard(
+                  title: 'Total Receivables',
+                  value: currencyFormat.format(kpiData.totalReceivables),
+                  change: '+0.0%', // Placeholder
+                  isPositiveChange: true,
+                  icon: LucideIcons.dollarSign,
+                  borderColor: AppColors.success,
+                ),
+                KpiCard(
+                  title: 'Total Payables',
+                  value: currencyFormat.format(kpiData.totalPayables),
+                  change: '-0.0%', // Placeholder
+                  isPositiveChange: false,
+                  icon: LucideIcons.trendingUp,
+                  borderColor: AppColors.warning,
+                ),
+                KpiCard(
+                  title: 'Overdue Invoices',
+                  value: kpiData.overdueInvoices.toString(),
+                  change: '+0', // Placeholder
+                  isPositiveChange: false,
+                  icon: LucideIcons.triangleAlert,
+                  borderColor: AppColors.destructive,
+                ),
+                KpiCard(
+                  title: 'Active Clients',
+                  value: kpiData.activeClients.toString(),
+                  change: '+0', // Placeholder
+                  isPositiveChange: true,
+                  icon: LucideIcons.users,
+                  borderColor: AppColors.primary,
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
 
+  // NOTE: The widgets below still use placeholder data.
+  // We will connect them to the database in a future step.
   Widget _buildBottomCards(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -110,6 +157,7 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildCashFlowCard(BuildContext context) {
+    // TODO: Replace with live data
     final textTheme = Theme.of(context).textTheme;
     return Card(
       child: Container(
@@ -172,6 +220,7 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildActionRequiredCard(BuildContext context) {
+    // TODO: Replace with live data
     final textTheme = Theme.of(context).textTheme;
     return Card(
       child: Container(
@@ -220,6 +269,7 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildRecentActivity(BuildContext context) {
+    // TODO: Replace with live data
     final activities = [
       {'icon': LucideIcons.circleCheck, 'color': AppColors.success, 'title': 'Invoice #1024 paid', 'subtitle': '\$2,500 from Acme Corp', 'time': '2 hours ago'},
       {'icon': LucideIcons.users, 'color': AppColors.info, 'title': "New client 'Tech Solutions' added", 'subtitle': 'Contact: hello@techsolutions.com', 'time': '4 hours ago'},

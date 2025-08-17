@@ -65,6 +65,32 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  // --- KPI Methods for Dashboard ---
+  Future<double> getTotalReceivables() {
+    final total = clients.balance.sum();
+    final query = selectOnly(clients)..addColumns([total])..where(clients.balance.isBiggerThanValue(0));
+    return query.map((row) => row.read(total) ?? 0.0).getSingle();
+  }
+
+  Future<double> getTotalPayables() {
+    final total = clients.balance.sum();
+    final query = selectOnly(clients)..addColumns([total])..where(clients.balance.isSmallerThanValue(0));
+    return query.map((row) => (row.read(total) ?? 0.0).abs()).getSingle();
+  }
+
+  Future<int> getActiveClientsCount() {
+    final count = clients.id.count();
+    final query = selectOnly(clients)..addColumns([count]);
+    return query.map((row) => row.read(count) ?? 0).getSingle();
+  }
+
+  Future<int> getOverdueInvoicesCount() {
+    final count = invoices.id.count();
+    final query = selectOnly(invoices)..addColumns([count])..where(invoices.status.equals('Overdue'));
+    return query.map((row) => row.read(count) ?? 0).getSingle();
+  }
+
+
   // --- Client Methods ---
   Future<List<Client>> getAllClients() => select(clients).get();
   Stream<List<Client>> watchAllClients() => select(clients).watch();
@@ -177,8 +203,22 @@ class InvoiceDetails {
   final Invoice invoice;
   final Client client;
   final List<LineItem> lineItems;
-
   InvoiceDetails({required this.invoice, required this.client, required this.lineItems});
+}
+
+// Data class to hold all dashboard KPI values
+class KpiData {
+  final double totalReceivables;
+  final double totalPayables;
+  final int activeClients;
+  final int overdueInvoices;
+
+  KpiData({
+    required this.totalReceivables,
+    required this.totalPayables,
+    required this.activeClients,
+    required this.overdueInvoices,
+  });
 }
 
 LazyDatabase _openConnection() {

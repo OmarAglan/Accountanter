@@ -4,39 +4,32 @@ import 'package:accountanter/theme/app_colors.dart';
 class KpiCard extends StatelessWidget {
   final String title;
   final String value;
-  final String change;
-  final bool isPositiveChange;
   final IconData icon;
   final Color borderColor;
+  final String change; // Still accepting for placeholder
+  final bool isPositiveChange; // Still accepting for placeholder
+
 
   const KpiCard({
     super.key,
     required this.title,
     required this.value,
-    required this.change,
-    required this.isPositiveChange,
     required this.icon,
     required this.borderColor,
+    this.change = '', // Default to empty
+    this.isPositiveChange = true, // Default
   });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Card(
-      shape: RoundedRectangleBorder(
-        side: const BorderSide(color: AppColors.border),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      // Prevents the content from painting outside the card's rounded corners
       clipBehavior: Clip.antiAlias,
       child: Container(
         decoration: BoxDecoration(
           border: Border(top: BorderSide(color: borderColor, width: 4)),
-          // The line below is important for the border to respect the card's rounded corners
           borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
         ),
-        // --- FIX STARTS HERE ---
-        // Wrap the content in a SingleChildScrollView to prevent overflow
         child: SingleChildScrollView(
           child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -61,33 +54,35 @@ class KpiCard extends StatelessWidget {
                 Text(
                   value,
                   style: textTheme.headlineMedium?.copyWith(
-                    fontFamily: 'monospace', // For financial figures
+                    fontFamily: 'monospace',
                     letterSpacing: -1,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: change,
-                        style: TextStyle(
-                          color: isPositiveChange ? AppColors.success : AppColors.destructive,
-                          fontWeight: FontWeight.w500,
+                // We keep this part for the placeholder data in other sections
+                // but it will be empty for the live data for now.
+                if (change.isNotEmpty)
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: change,
+                          style: TextStyle(
+                            color: isPositiveChange ? AppColors.success : AppColors.destructive,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      TextSpan(
-                        text: ' from last month',
-                        style: textTheme.bodyMedium,
-                      ),
-                    ],
+                        TextSpan(
+                          text: ' from last month',
+                          style: textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
               ],
             ),
           ),
         ),
-        // --- FIX ENDS HERE ---
       ),
     );
   }
