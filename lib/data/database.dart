@@ -7,27 +7,24 @@ import 'package:path/path.dart' as p;
 import 'tables/users.dart';
 import 'tables/licenses.dart';
 import 'tables/clients.dart';
-import 'tables/expenses.dart'; // Import the new expenses table
+import 'tables/expenses.dart';
+import 'tables/inventory_items.dart'; // 1. Import the new inventory table
 
 part 'database.g.dart';
 
-@DriftDatabase(tables: [Users, Licenses, Clients, Expenses]) // Add Expenses here
+@DriftDatabase(tables: [Users, Licenses, Clients, Expenses, InventoryItems]) // 2. Add InventoryItems here
 class AppDatabase extends _$AppDatabase {
   // --- SINGLETON SETUP START ---
-  // Private constructor
   AppDatabase._internal() : super(_openConnection());
-
-  // The single, static instance
   static final AppDatabase instance = AppDatabase._internal();
   // --- SINGLETON SETUP END ---
 
-  // The public constructor now just points to the internal one
   factory AppDatabase() {
     return instance;
   }
 
   @override
-  int get schemaVersion => 4; // INCREMENT the schema version to 4
+  int get schemaVersion => 5; // 3. INCREMENT the schema version to 5
 
   @override
   MigrationStrategy get migration {
@@ -44,8 +41,11 @@ class AppDatabase extends _$AppDatabase {
         if (from < 3) {
           await m.createTable(clients);
         }
-        if (from < 4) { // ADD this block for the new table
+        if (from < 4) {
           await m.createTable(expenses);
+        }
+        if (from < 5) { // 4. ADD this block for the new table
+          await m.createTable(inventoryItems);
         }
       },
     );
@@ -64,6 +64,13 @@ class AppDatabase extends _$AppDatabase {
   Future<int> insertExpense(ExpensesCompanion expense) => into(expenses).insert(expense);
   Future<bool> updateExpense(ExpensesCompanion expense) => update(expenses).replace(expense);
   Future<int> deleteExpense(int id) => (delete(expenses)..where((e) => e.id.equals(id))).go();
+
+  // --- Inventory Methods --- // 5. ADD new methods for inventory
+  Stream<List<InventoryItem>> watchAllInventoryItems() => select(inventoryItems).watch();
+  Future<int> insertInventoryItem(InventoryItemsCompanion item) => into(inventoryItems).insert(item);
+  Future<bool> updateInventoryItem(InventoryItemsCompanion item) => update(inventoryItems).replace(item);
+  Future<int> deleteInventoryItem(int id) => (delete(inventoryItems)..where((i) => i.id.equals(id))).go();
+
 
   // --- Auth & System Methods ---
   Future<License?> getLicense() => (select(licenses)..where((l) => l.id.equals(1))).getSingleOrNull();
