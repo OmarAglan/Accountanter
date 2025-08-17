@@ -1,22 +1,21 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:intl/intl.dart';
 
 import 'package:accountanter/data/database.dart';
 import 'package:accountanter/theme/app_colors.dart';
 
-// Helper class to manage controllers for each line item
 class LineItemControllers {
   final TextEditingController descriptionController;
   final TextEditingController quantityController;
   final TextEditingController unitPriceController;
 
-  LineItemControllers()
-      : descriptionController = TextEditingController(),
-        quantityController = TextEditingController(text: '1'),
-        unitPriceController = TextEditingController(text: '0.00');
+  LineItemControllers({String? description, int? quantity, double? unitPrice})
+      : descriptionController = TextEditingController(text: description ?? ''),
+        quantityController = TextEditingController(text: (quantity ?? 1).toString()),
+        unitPriceController = TextEditingController(text: (unitPrice ?? 0.0).toStringAsFixed(2));
 
   void dispose() {
     descriptionController.dispose();
@@ -26,9 +25,9 @@ class LineItemControllers {
 }
 
 class InvoiceEditorScreen extends StatefulWidget {
-  final Invoice? invoice; // Pass an invoice to edit it
+  final int? invoiceId;
 
-  const InvoiceEditorScreen({super.key, this.invoice});
+  const InvoiceEditorScreen({super.key, this.invoiceId});
 
   @override
   State<InvoiceEditorScreen> createState() => _InvoiceEditorScreenState();
@@ -38,9 +37,9 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
   final _formKey = GlobalKey<FormState>();
   final AppDatabase _database = AppDatabase.instance;
   
-  bool get _isEditing => widget.invoice != null;
+  bool get _isEditing => widget.invoiceId != null;
+  bool _isLoading = true;
 
-  // Form State
   Client? _selectedClient;
   late TextEditingController _invoiceNumberController;
   late TextEditingController _issueDateController;
@@ -53,21 +52,43 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
   @override
   void initState() {
     super.initState();
+    _invoiceNumberController = TextEditingController();
+    _issueDateController = TextEditingController();
+    _dueDateController = TextEditingController();
+    _notesController = TextEditingController();
+
     if (_isEditing) {
-      final inv = widget.invoice!;
-      // In a real app, you would fetch the client and line items for this invoice
-      _invoiceNumberController = TextEditingController(text: inv.invoiceNumber);
-      _issueDate = inv.issueDate;
-      _dueDate = inv.dueDate;
-      _notesController = TextEditingController(text: inv.notes ?? '');
-       // TODO: Fetch and populate line items for editing
+      _loadInvoiceData();
     } else {
-      _invoiceNumberController = TextEditingController(); // Will be generated on save
-      _notesController = TextEditingController();
-      _addLineItem(); // Start with one empty line item
+      _invoiceNumberController.text = 'INV-${DateTime.now().millisecondsSinceEpoch}';
+      _issueDateController.text = DateFormat('yyyy-MM-dd').format(_issueDate);
+      _addLineItem();
+      setState(() => _isLoading = false);
     }
-    _issueDateController = TextEditingController(text: DateFormat('yyyy-MM-dd').format(_issueDate));
-    _dueDateController = TextEditingController(text: _dueDate != null ? DateFormat('yyyy-MM-dd').format(_dueDate!) : '');
+  }
+
+  Future<void> _loadInvoiceData() async {
+    final details = await _database.getInvoiceDetails(widget.invoiceId!);
+    if (details != null) {
+      setState(() {
+        _selectedClient = details.client;
+        _invoiceNumberController.text = details.invoice.invoiceNumber;
+        _issueDate = details.invoice.issueDate;
+        _issueDateController.text = DateFormat('yyyy-MM-dd').format(_issueDate);
+        _dueDate = details.invoice.dueDate;
+        _dueDateController.text = _dueDate != null ? DateFormat('yyyy-MM-dd').format(_dueDate!) : '';
+        _notesController.text = details.invoice.notes ?? '';
+
+        for (var item in details.lineItems) {
+          _lineItemControllers.add(LineItemControllers(
+            description: item.description,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+          ));
+        }
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -96,7 +117,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
   }
   
   void _updateTotals() {
-    setState(() {}); // Just trigger a rebuild to update totals
+    setState(() {});
   }
 
   Future<void> _selectDate(BuildContext context, bool isIssueDate) async {
@@ -120,9 +141,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
   }
 
   Future<void> _handleSave(String status) async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
     if (_selectedClient == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a client.')));
       return;
@@ -137,8 +156,8 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
     final total = subtotal + tax;
 
     final invoiceCompanion = InvoicesCompanion(
-      id: _isEditing ? Value(widget.invoice!.id) : const Value.absent(),
-      invoiceNumber: Value(_invoiceNumberController.text.isNotEmpty ? _invoiceNumberController.text : 'INV-${DateTime.now().millisecondsSinceEpoch}'),
+      id: _isEditing ? Value(widget.invoiceId!) : const Value.absent(),
+      invoiceNumber: Value(_invoiceNumberController.text),
       clientId: Value(_selectedClient!.id),
       issueDate: Value(_issueDate),
       dueDate: Value(_dueDate ?? _issueDate.add(const Duration(days: 30))),
@@ -178,7 +197,9 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Scaffold and main layout are the same...
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -202,7 +223,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
       ),
     );
   }
-  // All other _build... methods remain the same as before
+
   Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -218,7 +239,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _isEditing ? 'Edit Invoice ${widget.invoice!.invoiceNumber}' : 'Create New Invoice',
+                  _isEditing ? 'Edit Invoice ${_invoiceNumberController.text}' : 'Create New Invoice',
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 Text(
@@ -280,7 +301,6 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
   }
   
   Widget _buildClientCard() {
-    // In a real app, this would use a searchable dropdown or similar
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -355,18 +375,16 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Header
             Row(
               children: [
                 const Expanded(flex: 4, child: Text('Description', style: TextStyle(fontWeight: FontWeight.bold))),
                 const Expanded(flex: 1, child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
                 const Expanded(flex: 2, child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
                 const Expanded(flex: 2, child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
-                const SizedBox(width: 48), // For delete button
+                const SizedBox(width: 48),
               ],
             ),
             const Divider(),
-            // Items
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),

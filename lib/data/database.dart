@@ -109,22 +109,45 @@ class AppDatabase extends _$AppDatabase {
       }).toList();
     });
   }
+  
+  Future<InvoiceDetails?> getInvoiceDetails(int invoiceId) async {
+    final invoiceQuery = select(invoices)..where((i) => i.id.equals(invoiceId));
+    final invoiceResult = await invoiceQuery.getSingleOrNull();
+
+    if (invoiceResult == null) return null;
+
+    final clientQuery = select(clients)..where((c) => c.id.equals(invoiceResult.clientId));
+    final clientResult = await clientQuery.getSingle();
+
+    final lineItemsQuery = select(lineItems)..where((l) => l.invoiceId.equals(invoiceId));
+    final lineItemsResult = await lineItemsQuery.get();
+
+    return InvoiceDetails(
+      invoice: invoiceResult,
+      client: clientResult,
+      lineItems: lineItemsResult,
+    );
+  }
 
   Future<void> createOrUpdateInvoice(
       InvoicesCompanion invoice, List<LineItemsCompanion> items) {
     return transaction(() async {
-      // Insert the invoice and get its ID
       final invoiceId =
           await into(invoices).insert(invoice, mode: InsertMode.insertOrReplace);
 
-      // Delete existing line items for this invoice before inserting new ones (for updates)
       await (delete(lineItems)..where((l) => l.invoiceId.equals(invoiceId)))
           .go();
 
-      // Insert the new line items
       for (final item in items) {
         await into(lineItems).insert(item.copyWith(invoiceId: Value(invoiceId)));
       }
+    });
+  }
+
+  Future<void> deleteInvoice(int invoiceId) {
+    return transaction(() async {
+      await (delete(lineItems)..where((l) => l.invoiceId.equals(invoiceId))).go();
+      await (delete(invoices)..where((i) => i.id.equals(invoiceId))).go();
     });
   }
 
@@ -148,6 +171,14 @@ class InvoiceWithClient {
   final Invoice invoice;
   final Client client;
   InvoiceWithClient({required this.invoice, required this.client});
+}
+
+class InvoiceDetails {
+  final Invoice invoice;
+  final Client client;
+  final List<LineItem> lineItems;
+
+  InvoiceDetails({required this.invoice, required this.client, required this.lineItems});
 }
 
 LazyDatabase _openConnection() {

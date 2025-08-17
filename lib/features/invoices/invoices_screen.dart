@@ -33,9 +33,38 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     super.dispose();
   }
 
-  void _navigateToInvoiceEditor() {
+  void _navigateToInvoiceEditor({int? invoiceId}) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const InvoiceEditorScreen()),
+      MaterialPageRoute(builder: (context) => InvoiceEditorScreen(invoiceId: invoiceId)),
+    );
+  }
+
+  void _confirmAndDeleteInvoice(Invoice invoice) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Invoice'),
+          content: Text('Are you sure you want to delete invoice "${invoice.invoiceNumber}"? This action cannot be undone.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: AppColors.destructive),
+              child: const Text('Delete'),
+              onPressed: () {
+                _database.deleteInvoice(invoice.id);
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Invoice ${invoice.invoiceNumber} deleted.'))
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -45,10 +74,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
       stream: _invoicesStream,
       builder: (context, snapshot) {
         final allInvoices = snapshot.data ?? [];
-
-        // This logic will be inside the TabBarView builder
-        // final filteredInvoices = _filterInvoices(allInvoices);
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -67,14 +92,11 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
 
   List<InvoiceWithClient> _filterInvoices(List<InvoiceWithClient> allInvoices) {
     final status = _tabs[_tabController.index];
-
     return allInvoices.where((iwc) {
       final searchLower = _searchTerm.toLowerCase();
       final clientMatches = iwc.client.name.toLowerCase().contains(searchLower);
       final numberMatches = iwc.invoice.invoiceNumber.toLowerCase().contains(searchLower);
-      
-      final statusMatches = (status == 'All') || (iwc.invoice.status.toLowerCase() == status.toLowerCase());
-
+      final statusMatches = (status == 'All') || (iwc.invoice.status == status);
       return (clientMatches || numberMatches) && statusMatches;
     }).toList();
   }
@@ -103,7 +125,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     final totalRevenue = invoices.where((i) => i.invoice.status == 'Paid').fold(0.0, (sum, i) => sum + i.invoice.totalAmount);
     final pendingRevenue = invoices.where((i) => i.invoice.status == 'Pending').fold(0.0, (sum, i) => sum + i.invoice.totalAmount);
     final overdueRevenue = invoices.where((i) => i.invoice.status == 'Overdue').fold(0.0, (sum, i) => sum + i.invoice.totalAmount);
-    
     final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
     return LayoutBuilder(
@@ -153,10 +174,10 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
           TabBar(
             controller: _tabController,
             tabs: _tabs.map((label) => Tab(text: label)).toList(),
-            onTap: (_) => setState(() {}), // Rebuild to apply filter
+            onTap: (_) => setState(() {}),
           ),
           SizedBox(
-            height: 400, // Define a height for the TabBarView
+            height: 400,
             child: TabBarView(
               controller: _tabController,
               children: _tabs.map((_) {
@@ -172,10 +193,14 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
   
   Widget _buildDataTable(List<InvoiceWithClient> invoices) {
     if (invoices.isEmpty) {
-      return const Center(child: Text('No invoices found.'));
+      return const Center(child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Text('No invoices found for this filter.'),
+      ));
     }
 
     return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       child: DataTable(
         columns: const [
           DataColumn(label: Text('Invoice #')),
@@ -203,9 +228,9 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
       DataCell(PopupMenuButton<String>(
         onSelected: (value) {
           if (value == 'edit') {
-            // TODO: Navigate to edit screen with iwc.invoice
+            _navigateToInvoiceEditor(invoiceId: iwc.invoice.id);
           } else if (value == 'delete') {
-            // TODO: Show delete confirmation dialog
+            _confirmAndDeleteInvoice(iwc.invoice);
           }
         },
         itemBuilder: (context) => <PopupMenuEntry<String>>[
