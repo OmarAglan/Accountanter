@@ -170,8 +170,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           children: [
             ExpenseSummaryCard(icon: LucideIcons.dollarSign, title: 'Total Expenses', value: currencyFormat.format(totalExpenses), color: AppColors.primary, subtitle: 'This month'),
             ExpenseSummaryCard(icon: LucideIcons.clock, title: 'Pending Approval', value: currencyFormat.format(pendingExpenses), color: AppColors.warning, subtitle: '${expenses.where((e) => e.status == 'pending').length} expenses'),
-            ExpenseSummaryCard(icon: LucideIcons.checkCircle, title: 'Approved', value: currencyFormat.format(approvedExpenses), color: AppColors.success, subtitle: '${expenses.where((e) => e.status == 'approved').length} expenses'),
-            ExpenseSummaryCard(icon: LucideIcons.pieChart, title: 'Average Expense', value: currencyFormat.format(avgExpense), color: AppColors.info, subtitle: 'Per expense'),
+            ExpenseSummaryCard(icon: LucideIcons.circleCheck, title: 'Approved', value: currencyFormat.format(approvedExpenses), color: AppColors.success, subtitle: '${expenses.where((e) => e.status == 'approved').length} expenses'),
+            ExpenseSummaryCard(icon: LucideIcons.chartPie, title: 'Average Expense', value: currencyFormat.format(avgExpense), color: AppColors.info, subtitle: 'Per expense'),
           ],
         );
       }
