@@ -6,9 +6,10 @@ import '../dashboard/dashboard_screen.dart';
 import '../clients/clients_screen.dart';
 import '../invoices/invoices_screen.dart';
 import '../inventory/inventory_screen.dart';
+import '../expenses/expenses_screen.dart'; // 1. IMPORT the new screen
 
-// Enum to keep track of the active page, making it type-safe
-enum AppPage { dashboard, clients, invoices, inventory }
+// 2. ADD 'expenses' to the enum
+enum AppPage { dashboard, clients, invoices, inventory, expenses }
 
 class MainScreen extends StatefulWidget {
   final VoidCallback onLogout;
@@ -33,6 +34,8 @@ class _MainScreenState extends State<MainScreen> {
         return const InvoicesScreen();
       case AppPage.inventory:
         return const InventoryScreen();
+      case AppPage.expenses: // 3. ADD a case for the new screen
+        return const ExpensesScreen();
     }
   }
 

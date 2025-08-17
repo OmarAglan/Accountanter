@@ -36,6 +36,7 @@ class AppSidebar extends StatelessWidget {
                 _buildNavItem(context, AppPage.clients, LucideIcons.users, 'Clients'),
                 _buildNavItem(context, AppPage.invoices, LucideIcons.fileText, 'Invoices'),
                 _buildNavItem(context, AppPage.inventory, LucideIcons.package, 'Inventory'),
+                _buildNavItem(context, AppPage.expenses, LucideIcons.receipt, 'Expenses'), // <-- ADD THIS LINE
               ],
             ),
           ),
