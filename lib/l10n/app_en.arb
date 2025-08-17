@@ -1,0 +1,12 @@
+{
+    "@@locale": "en",
+    "appTitle": "Accountanter",
+    "dashboard": "Dashboard",
+    "clients": "Clients",
+    "invoices": "Invoices",
+    "inventory": "Inventory",
+    "expenses": "Expenses",
+    "settings": "Settings",
+    "help": "Help",
+    "logout": "Logout"
+}

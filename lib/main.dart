@@ -4,8 +4,9 @@ import 'package:accountanter/features/auth/login_screen.dart';
 import 'package:accountanter/features/main/main_screen.dart';
 import 'package:accountanter/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'; // Import this
+import 'l10n/app_localizations.dart';
 
-// --- FIX: Enum is now declared outside the class ---
 enum AppStatus { uninitialized, unactivated, loggedOut, loggedIn }
 
 void main() {
@@ -34,7 +35,7 @@ class _MyAppState extends State<MyApp> {
   
   @override
   void dispose() {
-    _authService.dispose(); // Close the database connection
+    _authService.dispose();
     super.dispose();
   }
 
@@ -49,7 +50,6 @@ class _MyAppState extends State<MyApp> {
     if (rememberedUser != null) {
       setState(() => _status = AppStatus.loggedIn);
     } else {
-      // Get the local username to pre-fill the login form
       final user = await _authService.database.getLocalUser();
       setState(() {
         _prefilledUsername = user?.username;
@@ -73,6 +73,19 @@ class _MyAppState extends State<MyApp> {
       title: 'Accountanter',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      
+      // Add Localization delegates
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'), // English
+        Locale('ar'), // Arabic
+      ],
+      
       home: _buildHomeScreen(),
     );
   }

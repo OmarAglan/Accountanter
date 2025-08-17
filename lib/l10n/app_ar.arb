@@ -1,0 +1,12 @@
+{
+    "@@locale": "ar",
+    "appTitle": "محاسب",
+    "dashboard": "لوحة التحكم",
+    "clients": "العملاء",
+    "invoices": "الفواتير",
+    "inventory": "المخزون",
+    "expenses": "المصروفات",
+    "settings": "الإعدادات",
+    "help": "المساعدة",
+    "logout": "تسجيل الخروج"
+}
