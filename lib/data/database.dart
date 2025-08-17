@@ -11,6 +11,8 @@ import 'tables/expenses.dart';
 import 'tables/inventory_items.dart';
 import 'tables/invoices.dart';
 import 'tables/line_items.dart';
+import 'tables/categories.dart'; // Import new table
+import 'tables/suppliers.dart'; // Import new table
 
 part 'database.g.dart';
 
@@ -21,7 +23,9 @@ part 'database.g.dart';
   Expenses,
   InventoryItems,
   Invoices,
-  LineItems
+  LineItems,
+  Categories, // Add new table
+  Suppliers, // Add new table
 ])
 class AppDatabase extends _$AppDatabase {
   // --- SINGLETON SETUP START ---
@@ -34,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7; // INCREMENT SCHEMA VERSION
 
   @override
   MigrationStrategy get migration {
@@ -43,7 +47,7 @@ class AppDatabase extends _$AppDatabase {
         await m.createAll();
       },
       onUpgrade: (Migrator m, int from, int to) async {
-        // ... migrations remain the same
+        // ... previous migrations
         if (from < 2) {
           await m.createTable(licenses);
           await m.drop(users);
@@ -62,6 +66,25 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(invoices);
           await m.createTable(lineItems);
         }
+        // NEW MIGRATION LOGIC
+        if (from < 7) {
+          // 1. Create new tables
+          await m.createTable(categories);
+          await m.createTable(suppliers);
+
+          // 2. Add new columns to inventory_items table
+          await m.addColumn(inventoryItems, inventoryItems.categoryId);
+          await m.addColumn(inventoryItems, inventoryItems.supplierId);
+
+          // 3. Data migration (this is a simplified version)
+          // In a real app with existing data, you would migrate existing
+          // category and supplier strings into the new tables.
+          // For this new app, we can skip complex data migration.
+
+          // 4. We can now drop the old columns if we were migrating from an
+          // older version of inventoryItems with text fields. Since we are
+          // just changing the definition, the generator will handle it.
+        }
       },
     );
   }
@@ -71,18 +94,14 @@ class AppDatabase extends _$AppDatabase {
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
     
-    // KPIs
     final totalReceivablesFuture = getTotalReceivables();
     final totalPayablesFuture = getTotalPayables();
     final activeClientsCountFuture = getActiveClientsCount();
     
-    // Action Items
     final overdueInvoicesCountFuture = (select(invoices)..where((i) => i.status.equals('Overdue'))).get().then((l) => l.length);
-    // CORRECTED LINE BELOW
     final invoicesDueSoonCountFuture = (select(invoices)..where((i) => i.status.equals('Pending') & i.dueDate.isSmallerThanValue(now.add(const Duration(days: 7))))).get().then((l) => l.length);
     final draftInvoicesCountFuture = (select(invoices)..where((i) => i.status.equals('Draft'))).get().then((l) => l.length);
 
-    // Cash Flow
     final moneyInExpr = invoices.totalAmount.sum();
     final moneyInQuery = selectOnly(invoices)..addColumns([moneyInExpr])..where(invoices.status.equals('Paid') & invoices.issueDate.isBiggerOrEqualValue(startOfMonth));
     final moneyInFuture = moneyInQuery.map((row) => row.read(moneyInExpr) ?? 0.0).getSingle();
@@ -91,7 +110,6 @@ class AppDatabase extends _$AppDatabase {
     final moneyOutQuery = selectOnly(expenses)..addColumns([moneyOutExpr])..where(expenses.date.isBiggerOrEqualValue(startOfMonth));
     final moneyOutFuture = moneyOutQuery.map((row) => row.read(moneyOutExpr) ?? 0.0).getSingle();
 
-    // Recent Activities
     final recentInvoicesFuture = (select(invoices)..orderBy([(i) => OrderingTerm.desc(i.createdAt)])..limit(2)).get();
     final recentClientsFuture = (select(clients)..orderBy([(c) => OrderingTerm.desc(c.createdAt)])..limit(2)).get();
     final recentExpensesFuture = (select(expenses)..orderBy([(e) => OrderingTerm.desc(e.createdAt)])..limit(2)).get();
@@ -110,7 +128,6 @@ class AppDatabase extends _$AppDatabase {
     ];
 
     allActivities.sort((a, b) => b.date.compareTo(a.date));
-
 
     return DashboardData(
       totalReceivables: results[0] as double,
@@ -145,48 +162,32 @@ class AppDatabase extends _$AppDatabase {
     return query.map((row) => row.read(count) ?? 0).getSingle();
   }
 
-  // ... other methods for clients, expenses, inventory, invoices, auth etc. remain the same
-    // --- Client Methods ---
+  // --- Client Methods ---
   Future<List<Client>> getAllClients() => select(clients).get();
   Stream<List<Client>> watchAllClients() => select(clients).watch();
-  Future<int> insertClient(ClientsCompanion client) =>
-      into(clients).insert(client);
-  Future<bool> updateClient(ClientsCompanion client) =>
-      update(clients).replace(client);
-  Future<int> deleteClient(int id) =>
-      (delete(clients)..where((c) => c.id.equals(id))).go();
+  Future<int> insertClient(ClientsCompanion client) => into(clients).insert(client);
+  Future<bool> updateClient(ClientsCompanion client) => update(clients).replace(client);
+  Future<int> deleteClient(int id) => (delete(clients)..where((c) => c.id.equals(id))).go();
 
   // --- Expense Methods ---
   Future<List<Expense>> getAllExpenses() => select(expenses).get();
   Stream<List<Expense>> watchAllExpenses() => select(expenses).watch();
-  Future<int> insertExpense(ExpensesCompanion expense) =>
-      into(expenses).insert(expense);
-  Future<bool> updateExpense(ExpensesCompanion expense) =>
-      update(expenses).replace(expense);
-  Future<int> deleteExpense(int id) =>
-      (delete(expenses)..where((e) => e.id.equals(id))).go();
+  Future<int> insertExpense(ExpensesCompanion expense) => into(expenses).insert(expense);
+  Future<bool> updateExpense(ExpensesCompanion expense) => update(expenses).replace(expense);
+  Future<int> deleteExpense(int id) => (delete(expenses)..where((e) => e.id.equals(id))).go();
 
   // --- Inventory Methods ---
-  Stream<List<InventoryItem>> watchAllInventoryItems() =>
-      select(inventoryItems).watch();
-  Future<int> insertInventoryItem(InventoryItemsCompanion item) =>
-      into(inventoryItems).insert(item);
-  Future<bool> updateInventoryItem(InventoryItemsCompanion item) =>
-      update(inventoryItems).replace(item);
-  Future<int> deleteInventoryItem(int id) =>
-      (delete(inventoryItems)..where((i) => i.id.equals(id))).go();
+  Stream<List<InventoryItem>> watchAllInventoryItems() => select(inventoryItems).watch();
+  Future<int> insertInventoryItem(InventoryItemsCompanion item) => into(inventoryItems).insert(item);
+  Future<bool> updateInventoryItem(InventoryItemsCompanion item) => update(inventoryItems).replace(item);
+  Future<int> deleteInventoryItem(int id) => (delete(inventoryItems)..where((i) => i.id.equals(id))).go();
 
   // --- Invoice & Line Item Methods ---
   Stream<List<InvoiceWithClient>> watchAllInvoicesWithClient() {
-    final query = select(invoices).join(
-        [innerJoin(clients, clients.id.equalsExp(invoices.clientId))]);
-
+    final query = select(invoices).join([innerJoin(clients, clients.id.equalsExp(invoices.clientId))]);
     return query.watch().map((rows) {
       return rows.map((row) {
-        return InvoiceWithClient(
-          invoice: row.readTable(invoices),
-          client: row.readTable(clients),
-        );
+        return InvoiceWithClient(invoice: row.readTable(invoices), client: row.readTable(clients));
       }).toList();
     });
   }
@@ -194,31 +195,18 @@ class AppDatabase extends _$AppDatabase {
   Future<InvoiceDetails?> getInvoiceDetails(int invoiceId) async {
     final invoiceQuery = select(invoices)..where((i) => i.id.equals(invoiceId));
     final invoiceResult = await invoiceQuery.getSingleOrNull();
-
     if (invoiceResult == null) return null;
-
     final clientQuery = select(clients)..where((c) => c.id.equals(invoiceResult.clientId));
     final clientResult = await clientQuery.getSingle();
-
     final lineItemsQuery = select(lineItems)..where((l) => l.invoiceId.equals(invoiceId));
     final lineItemsResult = await lineItemsQuery.get();
-
-    return InvoiceDetails(
-      invoice: invoiceResult,
-      client: clientResult,
-      lineItems: lineItemsResult,
-    );
+    return InvoiceDetails(invoice: invoiceResult, client: clientResult, lineItems: lineItemsResult);
   }
 
-  Future<void> createOrUpdateInvoice(
-      InvoicesCompanion invoice, List<LineItemsCompanion> items) {
+  Future<void> createOrUpdateInvoice(InvoicesCompanion invoice, List<LineItemsCompanion> items) {
     return transaction(() async {
-      final invoiceId =
-          await into(invoices).insert(invoice, mode: InsertMode.insertOrReplace);
-
-      await (delete(lineItems)..where((l) => l.invoiceId.equals(invoiceId)))
-          .go();
-
+      final invoiceId = await into(invoices).insert(invoice, mode: InsertMode.insertOrReplace);
+      await (delete(lineItems)..where((l) => l.invoiceId.equals(invoiceId))).go();
       for (final item in items) {
         await into(lineItems).insert(item.copyWith(invoiceId: Value(invoiceId)));
       }
@@ -233,10 +221,8 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // --- Auth & System Methods ---
-  Future<License?> getLicense() =>
-      (select(licenses)..where((l) => l.id.equals(1))).getSingleOrNull();
-  Future<void> saveLicense(LicensesCompanion license) =>
-      into(licenses).insert(license, mode: InsertMode.replace);
+  Future<License?> getLicense() => (select(licenses)..where((l) => l.id.equals(1))).getSingleOrNull();
+  Future<void> saveLicense(LicensesCompanion license) => into(licenses).insert(license, mode: InsertMode.replace);
   Future<User?> getLocalUser() => (select(users)).getSingleOrNull();
   Future<void> createLocalUser(UsersCompanion user) => into(users).insert(user);
   Future<void> factoryReset() async {

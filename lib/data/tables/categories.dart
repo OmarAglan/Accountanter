@@ -10,7 +10,5 @@ class Categories extends Table {
   TextColumn get type => text()();
   
   @override
-  Set<Column> get primaryKey => {id};
-  @override
   List<String> get customConstraints => ['UNIQUE(name, type)'];
 }
