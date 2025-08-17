@@ -8,6 +8,20 @@ import 'package:accountanter/theme/app_colors.dart';
 import 'widgets/expense_summary_card.dart';
 import 'widgets/add_edit_expense_dialog.dart';
 
+// New data class to hold the result of the join
+class ExpenseWithDetails {
+  final Expense expense;
+  final Category category;
+  final Vendor? vendor;
+
+  ExpenseWithDetails({
+    required this.expense,
+    required this.category,
+    this.vendor,
+  });
+}
+
+
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key});
 
@@ -17,17 +31,12 @@ class ExpensesScreen extends StatefulWidget {
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
   final AppDatabase _database = AppDatabase.instance;
-  late Stream<List<Expense>> _expensesStream;
+  late Stream<List<ExpenseWithDetails>> _expensesStream;
   String _searchTerm = '';
   String _filterCategory = 'All Categories';
   String _filterStatus = 'All Statuses';
 
-  final List<String> _expenseCategories = [
-    "All Categories", "Office Supplies", "Software", "Equipment", "Travel", 
-    "Meals & Entertainment", "Marketing", "Professional Services", 
-    "Utilities", "Rent", "Insurance", "Training", "Other",
-  ];
-
+  List<String> _expenseCategories = ["All Categories"];
   final List<String> _expenseStatuses = [
     "All Statuses", "pending", "approved", "rejected",
   ];
@@ -35,7 +44,59 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   @override
   void initState() {
     super.initState();
-    _expensesStream = _database.watchAllExpenses();
+    _seedInitialData();
+    _expensesStream = _watchExpensesWithDetails();
+    _loadCategories();
+  }
+  
+  void _loadCategories() async {
+    final cats = await (_database.select(_database.categories)..where((c) => c.type.equals('expense'))).get();
+    setState(() {
+      _expenseCategories = ["All Categories", ...cats.map((c) => c.name)];
+    });
+  }
+  
+  // Seed some initial categories and vendors for demonstration
+  void _seedInitialData() async {
+    final existingCategories = await (_database.select(_database.categories)..where((c) => c.type.equals('expense'))).get();
+    if (existingCategories.isEmpty) {
+      await _database.batch((batch) {
+        batch.insertAll(_database.categories, [
+          CategoriesCompanion.insert(name: 'Office Supplies', type: 'expense'),
+          CategoriesCompanion.insert(name: 'Software', type: 'expense'),
+          CategoriesCompanion.insert(name: 'Travel', type: 'expense'),
+          CategoriesCompanion.insert(name: 'Meals & Entertainment', type: 'expense'),
+        ]);
+      });
+    }
+
+    final existingVendors = await (_database.select(_database.vendors)).get();
+    if (existingVendors.isEmpty) {
+      await _database.batch((batch) {
+        batch.insertAll(_database.vendors, [
+          VendorsCompanion.insert(name: 'Office Depot'),
+          VendorsCompanion.insert(name: 'Adobe Systems'),
+          VendorsCompanion.insert(name: 'American Airlines'),
+        ]);
+      });
+    }
+  }
+
+  Stream<List<ExpenseWithDetails>> _watchExpensesWithDetails() {
+    final query = _database.select(_database.expenses).join([
+      innerJoin(_database.categories, _database.categories.id.equalsExp(_database.expenses.categoryId)),
+      leftOuterJoin(_database.vendors, _database.vendors.id.equalsExp(_database.expenses.vendorId)),
+    ]);
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        return ExpenseWithDetails(
+          expense: row.readTable(_database.expenses),
+          category: row.readTable(_database.categories),
+          vendor: row.readTableOrNull(_database.vendors),
+        );
+      }).toList();
+    });
   }
   
   void _showAddExpenseDialog() {
@@ -87,19 +148,19 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Expense>>(
+    return StreamBuilder<List<ExpenseWithDetails>>(
       stream: _expensesStream,
       builder: (context, snapshot) {
-        final allExpenses = snapshot.data ?? [];
+        final allExpensesDetails = snapshot.data ?? [];
         
-        final filteredExpenses = allExpenses.where((expense) {
+        final filteredExpenses = allExpensesDetails.where((details) {
+          final expense = details.expense;
           final searchLower = _searchTerm.toLowerCase();
           final descriptionMatches = expense.description.toLowerCase().contains(searchLower);
-          final vendorMatches = expense.vendor?.toLowerCase().contains(searchLower) ?? false;
-          final categoryMatches = _filterCategory == 'All Categories' || expense.category == _filterCategory;
+          final vendorMatches = details.vendor?.name.toLowerCase().contains(searchLower) ?? false;
+          final categoryMatches = _filterCategory == 'All Categories' || details.category.name == _filterCategory;
           final statusMatches = _filterStatus == 'All Statuses' || expense.status == _filterStatus;
           return (descriptionMatches || vendorMatches) && categoryMatches && statusMatches;
         }).toList();
@@ -109,11 +170,11 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           children: [
             _buildHeader(context),
             const SizedBox(height: 24),
-            _buildSummaryCards(allExpenses),
+            _buildSummaryCards(allExpensesDetails.map((d) => d.expense).toList()),
             const SizedBox(height: 24),
             _buildFilterBar(),
             const SizedBox(height: 24),
-            _buildExpenseTable(context, filteredExpenses, allExpenses.length),
+            _buildExpenseTable(context, filteredExpenses),
           ],
         );
       },
@@ -171,7 +232,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             ExpenseSummaryCard(icon: LucideIcons.dollarSign, title: 'Total Expenses', value: currencyFormat.format(totalExpenses), color: AppColors.primary, subtitle: 'This month'),
             ExpenseSummaryCard(icon: LucideIcons.clock, title: 'Pending Approval', value: currencyFormat.format(pendingExpenses), color: AppColors.warning, subtitle: '${expenses.where((e) => e.status == 'pending').length} expenses'),
             ExpenseSummaryCard(icon: LucideIcons.circleCheck, title: 'Approved', value: currencyFormat.format(approvedExpenses), color: AppColors.success, subtitle: '${expenses.where((e) => e.status == 'approved').length} expenses'),
-            ExpenseSummaryCard(icon: LucideIcons.chartPie, title: 'Average Expense', value: currencyFormat.format(avgExpense), color: AppColors.info, subtitle: 'Per expense'),
+            ExpenseSummaryCard(icon: LucideIcons.chartBar, title: 'Average Expense', value: currencyFormat.format(avgExpense), color: AppColors.info, subtitle: 'Per expense'),
           ],
         );
       }
@@ -221,7 +282,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     );
   }
 
-  Widget _buildExpenseTable(BuildContext context, List<Expense> expenses, int totalCount) {
+  Widget _buildExpenseTable(BuildContext context, List<ExpenseWithDetails> expenses) {
     final textTheme = Theme.of(context).textTheme;
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -230,13 +291,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Expense List', style: textTheme.titleLarge),
-                Text('${expenses.length} of $totalCount expenses', style: textTheme.bodyMedium),
-              ],
-            ),
+            child: Text('Expense List', style: textTheme.titleLarge),
           ),
           const Divider(height: 1),
           SingleChildScrollView(
@@ -250,20 +305,21 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                 DataColumn(label: Text('Status')),
                 DataColumn(label: Text('Actions')),
               ],
-              rows: expenses.map((expense) => _buildDataRow(expense)).toList(),
+              rows: expenses.map((details) => _buildDataRow(details)).toList(),
             ),
           ),
           if (expenses.isEmpty)
             const Padding(
               padding: EdgeInsets.all(32.0),
               child: Center(child: Text('No expenses found.')),
-            ),
+            )
         ],
       ),
     );
   }
 
-  DataRow _buildDataRow(Expense expense) {
+  DataRow _buildDataRow(ExpenseWithDetails details) {
+    final expense = details.expense;
     final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
     final dateFormat = DateFormat('MMM d, yyyy');
 
@@ -282,11 +338,11 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(expense.description, style: const TextStyle(fontWeight: FontWeight.w500)),
-          if (expense.vendor != null && expense.vendor!.isNotEmpty)
-            Text(expense.vendor!, style: Theme.of(context).textTheme.bodySmall),
+          if (details.vendor != null)
+            Text(details.vendor!.name, style: Theme.of(context).textTheme.bodySmall),
         ],
       )),
-      DataCell(Text(expense.category)),
+      DataCell(Text(details.category.name)),
       DataCell(Text(currencyFormat.format(expense.amount), style: const TextStyle(fontFamily: 'monospace'))),
       DataCell(statusChip),
       DataCell(PopupMenuButton<String>(

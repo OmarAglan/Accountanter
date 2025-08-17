@@ -15,95 +15,127 @@ class AddEditInventoryDialog extends StatefulWidget {
 
 class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
   final _formKey = GlobalKey<FormState>();
+  final AppDatabase _database = AppDatabase.instance;
+
+  // Text Controllers
   final _nameController = TextEditingController();
   final _skuController = TextEditingController();
-  final _categoryController = TextEditingController();
   final _quantityController = TextEditingController();
   final _minStockController = TextEditingController();
   final _unitPriceController = TextEditingController();
-  final _supplierController = TextEditingController();
+  
+  // State for dropdowns
+  Category? _selectedCategory;
+  Supplier? _selectedSupplier;
+  
+  List<Category> _categories = [];
+  List<Supplier> _suppliers = [];
+  bool _isLoading = true;
 
   bool get _isEditing => widget.item != null;
 
   @override
   void initState() {
     super.initState();
-    if (_isEditing) {
-      final item = widget.item!;
-      _nameController.text = item.name;
-      _skuController.text = item.sku ?? '';
-      _categoryController.text = item.category;
-      _quantityController.text = item.quantity.toString();
-      _minStockController.text = item.minStock.toString();
-      _unitPriceController.text = item.unitPrice.toStringAsFixed(2);
-      _supplierController.text = item.supplier ?? '';
-    }
+    _loadInitialData();
   }
+
+  Future<void> _loadInitialData() async {
+    // In a real app, you might want to fetch these based on type, e.g., 'inventory'
+    final cats = await (_database.select(_database.categories)).get();
+    final sups = await (_database.select(_database.suppliers)).get();
+
+    setState(() {
+      _categories = cats;
+      _suppliers = sups;
+      
+      if (_isEditing) {
+        final item = widget.item!;
+        _nameController.text = item.name;
+        _skuController.text = item.sku ?? '';
+        _quantityController.text = item.quantity.toString();
+        _minStockController.text = item.minStock.toString();
+        _unitPriceController.text = item.unitPrice.toStringAsFixed(2);
+        
+        // Find and set the selected category and supplier from the fetched lists
+        _selectedCategory = _categories.where((c) => c.id == item.categoryId).firstOrNull;
+        if (item.supplierId != null) {
+          _selectedSupplier = _suppliers.where((s) => s.id == item.supplierId).firstOrNull;
+        }
+      }
+      _isLoading = false;
+    });
+  }
+
 
   @override
   void dispose() {
     _nameController.dispose();
     _skuController.dispose();
-    _categoryController.dispose();
     _quantityController.dispose();
     _minStockController.dispose();
     _unitPriceController.dispose();
-    _supplierController.dispose();
     super.dispose();
   }
 
   void _handleSave() {
-    if (_formKey.currentState!.validate()) {
-      final itemCompanion = InventoryItemsCompanion(
-        id: _isEditing ? Value(widget.item!.id) : const Value.absent(),
-        name: Value(_nameController.text),
-        sku: Value(_skuController.text),
-        category: Value(_categoryController.text),
-        quantity: Value(int.tryParse(_quantityController.text) ?? 0),
-        minStock: Value(int.tryParse(_minStockController.text) ?? 0),
-        unitPrice: Value(double.tryParse(_unitPriceController.text) ?? 0.0),
-        supplier: Value(_supplierController.text),
-      );
-
-      widget.onSave(itemCompanion);
-      Navigator.of(context).pop();
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
+
+    final itemCompanion = InventoryItemsCompanion(
+      id: _isEditing ? Value(widget.item!.id) : const Value.absent(),
+      name: Value(_nameController.text),
+      sku: Value(_skuController.text),
+      categoryId: Value(_selectedCategory!.id), // Use the ID from the selected object
+      quantity: Value(int.tryParse(_quantityController.text) ?? 0),
+      minStock: Value(int.tryParse(_minStockController.text) ?? 0),
+      unitPrice: Value(double.tryParse(_unitPriceController.text) ?? 0.0),
+      supplierId: Value(_selectedSupplier?.id), // Use the ID from the selected object
+    );
+
+    widget.onSave(itemCompanion);
+    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(_isEditing ? 'Edit Item' : 'Add New Item'),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildTextField(_nameController, 'Product Name *', isRequired: true),
-                const SizedBox(height: 16),
-                _buildTextField(_skuController, 'SKU'),
-                const SizedBox(height: 16),
-                _buildTextField(_categoryController, 'Category *', isRequired: true),
-                const SizedBox(height: 16),
-                Row(
+      content: _isLoading 
+        ? const Center(child: CircularProgressIndicator())
+        : Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(child: _buildIntField(_quantityController, 'Quantity *', isRequired: true)),
-                    const SizedBox(width: 16),
-                    Expanded(child: _buildIntField(_minStockController, 'Min. Stock')),
+                    _buildTextField(_nameController, 'Product Name *', isRequired: true),
+                    const SizedBox(height: 16),
+                    _buildTextField(_skuController, 'SKU'),
+                    const SizedBox(height: 16),
+                    // CATEGORY DROPDOWN
+                    _buildCategoryDropdown(),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(child: _buildIntField(_quantityController, 'Quantity *', isRequired: true)),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildIntField(_minStockController, 'Min. Stock')),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildPriceField(),
+                    const SizedBox(height: 16),
+                    // SUPPLIER DROPDOWN
+                    _buildSupplierDropdown(),
                   ],
                 ),
-                const SizedBox(height: 16),
-                _buildPriceField(),
-                const SizedBox(height: 16),
-                _buildTextField(_supplierController, 'Supplier'),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
@@ -124,6 +156,46 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
       validator: (v) => (isRequired && v!.isEmpty) ? '$label is required' : null,
     );
   }
+  
+  Widget _buildCategoryDropdown() {
+    return DropdownButtonFormField<Category>(
+      value: _selectedCategory,
+      decoration: const InputDecoration(labelText: 'Category *'),
+      hint: const Text('Select a category'),
+      items: _categories.map((Category category) {
+        return DropdownMenuItem<Category>(
+          value: category,
+          child: Text(category.name),
+        );
+      }).toList(),
+      onChanged: (Category? newValue) {
+        setState(() {
+          _selectedCategory = newValue;
+        });
+      },
+      validator: (value) => value == null ? 'Please select a category' : null,
+    );
+  }
+  
+  Widget _buildSupplierDropdown() {
+    return DropdownButtonFormField<Supplier>(
+      value: _selectedSupplier,
+      decoration: const InputDecoration(labelText: 'Supplier'),
+      hint: const Text('Select a supplier (optional)'),
+      items: _suppliers.map((Supplier supplier) {
+        return DropdownMenuItem<Supplier>(
+          value: supplier,
+          child: Text(supplier.name),
+        );
+      }).toList(),
+      onChanged: (Supplier? newValue) {
+        setState(() {
+          _selectedSupplier = newValue;
+        });
+      },
+    );
+  }
+
 
   Widget _buildIntField(TextEditingController controller, String label, {bool isRequired = false}) {
     return TextFormField(

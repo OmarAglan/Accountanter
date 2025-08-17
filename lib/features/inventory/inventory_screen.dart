@@ -1,12 +1,24 @@
-import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:intl/intl.dart';
-
+import 'package:drift/drift.dart' hide Column;
 import 'package:accountanter/data/database.dart';
 import 'package:accountanter/theme/app_colors.dart';
 import 'widgets/inventory_summary_card.dart';
 import 'widgets/add_edit_inventory_dialog.dart';
+
+// New data class to hold the result of the join
+class InventoryItemWithDetails {
+  final InventoryItem item;
+  final Category category;
+  final Supplier? supplier;
+
+  InventoryItemWithDetails({
+    required this.item,
+    required this.category,
+    this.supplier,
+  });
+}
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -17,13 +29,57 @@ class InventoryScreen extends StatefulWidget {
 
 class _InventoryScreenState extends State<InventoryScreen> {
   final AppDatabase _database = AppDatabase.instance;
-  late Stream<List<InventoryItem>> _itemsStream;
+  late Stream<List<InventoryItemWithDetails>> _itemsStream;
   String _searchTerm = '';
 
   @override
   void initState() {
     super.initState();
-    _itemsStream = _database.watchAllInventoryItems();
+    _seedInitialData(); // Add some data for demonstration
+    _itemsStream = _watchInventoryWithDetails();
+  }
+
+  // Seed some initial categories and suppliers for demonstration
+  void _seedInitialData() async {
+    final existingCategories = await (_database.select(_database.categories)).get();
+    if (existingCategories.isEmpty) {
+      await _database.batch((batch) {
+        batch.insertAll(_database.categories, [
+          CategoriesCompanion.insert(name: 'Electronics', type: 'inventory'),
+          CategoriesCompanion.insert(name: 'Accessories', type: 'inventory'),
+          CategoriesCompanion.insert(name: 'Software', type: 'inventory'),
+        ]);
+      });
+    }
+
+    final existingSuppliers = await (_database.select(_database.suppliers)).get();
+    if (existingSuppliers.isEmpty) {
+      await _database.batch((batch) {
+        batch.insertAll(_database.suppliers, [
+          SuppliersCompanion.insert(name: 'TechCorp'),
+          SuppliersCompanion.insert(name: 'OfficeSupply Co'),
+          SuppliersCompanion.insert(name: 'CableTech'),
+          SuppliersCompanion.insert(name: 'DisplayTech'),
+        ]);
+      });
+    }
+  }
+  
+  Stream<List<InventoryItemWithDetails>> _watchInventoryWithDetails() {
+    final query = _database.select(_database.inventoryItems).join([
+      innerJoin(_database.categories, _database.categories.id.equalsExp(_database.inventoryItems.categoryId)),
+      leftOuterJoin(_database.suppliers, _database.suppliers.id.equalsExp(_database.inventoryItems.supplierId)),
+    ]);
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        return InventoryItemWithDetails(
+          item: row.readTable(_database.inventoryItems),
+          category: row.readTable(_database.categories),
+          supplier: row.readTableOrNull(_database.suppliers),
+        );
+      }).toList();
+    });
   }
 
   void _showAddItemDialog() {
@@ -77,16 +133,17 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<InventoryItem>>(
+    return StreamBuilder<List<InventoryItemWithDetails>>(
       stream: _itemsStream,
       builder: (context, snapshot) {
         final allItems = snapshot.data ?? [];
         
-        final filteredItems = allItems.where((item) {
+        final filteredItems = allItems.where((details) {
+          final item = details.item;
           final searchLower = _searchTerm.toLowerCase();
           return item.name.toLowerCase().contains(searchLower) ||
                  (item.sku?.toLowerCase().contains(searchLower) ?? false) ||
-                 item.category.toLowerCase().contains(searchLower);
+                 details.category.name.toLowerCase().contains(searchLower);
         }).toList();
 
         return Column(
@@ -94,13 +151,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
           children: [
             _buildHeader(context),
             const SizedBox(height: 24),
-            _buildAlerts(allItems),
+            _buildAlerts(allItems.map((d) => d.item).toList()),
             const SizedBox(height: 24),
-            _buildSummaryCards(allItems),
+            _buildSummaryCards(allItems.map((d) => d.item).toList()),
             const SizedBox(height: 24),
             _buildFilterBar(),
             const SizedBox(height: 24),
-            _buildInventoryTable(context, filteredItems, allItems.length),
+            _buildInventoryTable(context, filteredItems),
           ],
         );
       },
@@ -218,7 +275,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 
-  Widget _buildInventoryTable(BuildContext context, List<InventoryItem> items, int totalCount) {
+  Widget _buildInventoryTable(BuildContext context, List<InventoryItemWithDetails> items) {
     final textTheme = Theme.of(context).textTheme;
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -243,20 +300,21 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 DataColumn(label: Text('Status')),
                 DataColumn(label: Text('Actions')),
               ],
-              rows: items.map((item) => _buildDataRow(item)).toList(),
+              rows: items.map((itemDetails) => _buildDataRow(itemDetails)).toList(),
             ),
           ),
-          if (items.isEmpty)
+           if (items.isEmpty)
             const Padding(
               padding: EdgeInsets.all(32.0),
               child: Center(child: Text('No items found.')),
-            ),
+            )
         ],
       ),
     );
   }
 
-  DataRow _buildDataRow(InventoryItem item) {
+  DataRow _buildDataRow(InventoryItemWithDetails details) {
+    final item = details.item;
     final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
     final totalValue = item.quantity * item.unitPrice;
     
@@ -284,7 +342,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     return DataRow(cells: [
       DataCell(Text(item.name, style: const TextStyle(fontWeight: FontWeight.w500))),
       DataCell(Text(item.sku ?? 'N/A')),
-      DataCell(Text(item.category)),
+      DataCell(Text(details.category.name)),
       DataCell(Text(item.quantity.toString())),
       DataCell(Text(currencyFormat.format(item.unitPrice), style: const TextStyle(fontFamily: 'monospace'))),
       DataCell(Text(currencyFormat.format(totalValue), style: const TextStyle(fontFamily: 'monospace'))),
@@ -297,7 +355,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             _confirmAndDeleteItem(item);
           }
         },
-        itemBuilder: (context) => <PopupMenuEntry<String>>[
+        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
           const PopupMenuItem<String>(value: 'edit', child: Text('Edit')),
           const PopupMenuItem<String>(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.destructive))),
         ],

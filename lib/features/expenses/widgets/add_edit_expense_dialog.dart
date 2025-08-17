@@ -16,53 +16,73 @@ class AddEditExpenseDialog extends StatefulWidget {
 
 class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
   final _formKey = GlobalKey<FormState>();
+  final AppDatabase _database = AppDatabase.instance;
+
+  // Text Controllers
   final _descriptionController = TextEditingController();
   final _amountController = TextEditingController();
-  final _vendorController = TextEditingController();
   final _dateController = TextEditingController();
   final _projectController = TextEditingController();
   final _tagsController = TextEditingController();
-
-  String? _selectedCategory;
+  
+  // State for dropdowns
+  Category? _selectedCategory;
+  Vendor? _selectedVendor;
   String? _selectedPaymentMethod;
+  
+  List<Category> _categories = [];
+  List<Vendor> _vendors = [];
+  bool _isLoading = true;
+
   DateTime _selectedDate = DateTime.now();
   
   bool get _isEditing => widget.expense != null;
   
-  final List<String> _expenseCategories = [
-    "Office Supplies", "Software", "Equipment", "Travel", 
-    "Meals & Entertainment", "Marketing", "Professional Services", 
-    "Utilities", "Rent", "Insurance", "Training", "Other",
-  ];
-
   final List<String> _paymentMethods = [
     "Cash", "Company Credit Card", "Personal Credit Card", 
     "Bank Transfer", "Check", "Purchase Order",
   ];
 
-
   @override
   void initState() {
     super.initState();
-    if (_isEditing) {
-      final expense = widget.expense!;
-      _descriptionController.text = expense.description;
-      _amountController.text = expense.amount.toStringAsFixed(2);
-      _vendorController.text = expense.vendor ?? '';
-      _selectedDate = expense.date;
-      _selectedCategory = expense.category;
-      _selectedPaymentMethod = expense.paymentMethod;
-      _projectController.text = expense.project ?? '';
-      _tagsController.text = expense.tags ?? '';
-    }
-    _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    _loadInitialData();
   }
   
+  Future<void> _loadInitialData() async {
+    final catsQuery = _database.select(_database.categories)..where((c) => c.type.equals('expense'));
+    final vendsQuery = _database.select(_database.vendors);
+
+    final cats = await catsQuery.get();
+    final vends = await vendsQuery.get();
+
+    setState(() {
+      _categories = cats;
+      _vendors = vends;
+      
+      if (_isEditing) {
+        final expense = widget.expense!;
+        _descriptionController.text = expense.description;
+        _amountController.text = expense.amount.toStringAsFixed(2);
+        _selectedDate = expense.date;
+        _selectedPaymentMethod = expense.paymentMethod;
+        _projectController.text = expense.project ?? '';
+        _tagsController.text = expense.tags ?? '';
+        
+        _selectedCategory = _categories.where((c) => c.id == expense.categoryId).firstOrNull;
+        if (expense.vendorId != null) {
+          _selectedVendor = _vendors.where((v) => v.id == expense.vendorId).firstOrNull;
+        }
+      }
+      _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate);
+      _isLoading = false;
+    });
+  }
+
   @override
   void dispose() {
     _descriptionController.dispose();
     _amountController.dispose();
-    _vendorController.dispose();
     _dateController.dispose();
     _projectController.dispose();
     _tagsController.dispose();
@@ -85,26 +105,25 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
   }
 
   void _handleSave() {
-    if (_formKey.currentState!.validate()) {
-      final amount = double.tryParse(_amountController.text) ?? 0.0;
-      
-      final expenseCompanion = ExpensesCompanion(
-        id: _isEditing ? Value(widget.expense!.id) : const Value.absent(),
-        description: Value(_descriptionController.text),
-        amount: Value(amount),
-        category: Value(_selectedCategory!),
-        vendor: Value(_vendorController.text),
-        paymentMethod: Value(_selectedPaymentMethod!),
-        date: Value(_selectedDate),
-        project: Value(_projectController.text),
-        tags: Value(_tagsController.text),
-        // Keep original status when editing, default to 'pending' on create
-        status: _isEditing ? Value(widget.expense!.status) : const Value('pending'),
-      );
-      
-      widget.onSave(expenseCompanion);
-      Navigator.of(context).pop();
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
+    
+    final expenseCompanion = ExpensesCompanion(
+      id: _isEditing ? Value(widget.expense!.id) : const Value.absent(),
+      description: Value(_descriptionController.text),
+      amount: Value(double.tryParse(_amountController.text) ?? 0.0),
+      categoryId: Value(_selectedCategory!.id),
+      vendorId: Value(_selectedVendor?.id),
+      paymentMethod: Value(_selectedPaymentMethod!),
+      date: Value(_selectedDate),
+      project: Value(_projectController.text),
+      tags: Value(_tagsController.text),
+      status: _isEditing ? Value(widget.expense!.status) : const Value('pending'),
+    );
+    
+    widget.onSave(expenseCompanion);
+    Navigator.of(context).pop();
   }
 
 
@@ -112,34 +131,36 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(_isEditing ? 'Edit Expense' : 'Add New Expense'),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildTextField(_descriptionController, 'Description *'),
-                const SizedBox(height: 16),
-                _buildAmountField(),
-                const SizedBox(height: 16),
-                _buildDropdown(_expenseCategories, 'Category *', _selectedCategory, (val) => setState(() => _selectedCategory = val)),
-                const SizedBox(height: 16),
-                _buildTextField(_vendorController, 'Vendor'),
-                const SizedBox(height: 16),
-                 _buildDropdown(_paymentMethods, 'Payment Method *', _selectedPaymentMethod, (val) => setState(() => _selectedPaymentMethod = val)),
-                const SizedBox(height: 16),
-                _buildDateField(),
-                const SizedBox(height: 16),
-                _buildTextField(_projectController, 'Project (Optional)'),
-                const SizedBox(height: 16),
-                _buildTextField(_tagsController, 'Tags (comma-separated)'),
-              ],
+      content: _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildTextField(_descriptionController, 'Description *', isRequired: true),
+                  const SizedBox(height: 16),
+                  _buildAmountField(),
+                  const SizedBox(height: 16),
+                  _buildCategoryDropdown(),
+                  const SizedBox(height: 16),
+                  _buildVendorDropdown(),
+                  const SizedBox(height: 16),
+                  _buildDropdown(_paymentMethods, 'Payment Method *', _selectedPaymentMethod, (val) => setState(() => _selectedPaymentMethod = val)),
+                  const SizedBox(height: 16),
+                  _buildDateField(),
+                  const SizedBox(height: 16),
+                  _buildTextField(_projectController, 'Project (Optional)'),
+                  const SizedBox(height: 16),
+                  _buildTextField(_tagsController, 'Tags (comma-separated)'),
+                ],
+              ),
             ),
           ),
         ),
-      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
@@ -173,6 +194,45 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
         if (v == null || v.isEmpty) return 'Amount is required';
         if (double.tryParse(v) == null) return 'Enter a valid number';
         return null;
+      },
+    );
+  }
+  
+  Widget _buildCategoryDropdown() {
+    return DropdownButtonFormField<Category>(
+      value: _selectedCategory,
+      decoration: const InputDecoration(labelText: 'Category *'),
+      hint: const Text('Select a category'),
+      items: _categories.map((Category category) {
+        return DropdownMenuItem<Category>(
+          value: category,
+          child: Text(category.name),
+        );
+      }).toList(),
+      onChanged: (Category? newValue) {
+        setState(() {
+          _selectedCategory = newValue;
+        });
+      },
+      validator: (value) => value == null ? 'Please select a category' : null,
+    );
+  }
+  
+  Widget _buildVendorDropdown() {
+    return DropdownButtonFormField<Vendor>(
+      value: _selectedVendor,
+      decoration: const InputDecoration(labelText: 'Vendor'),
+      hint: const Text('Select a vendor (optional)'),
+      items: _vendors.map((Vendor vendor) {
+        return DropdownMenuItem<Vendor>(
+          value: vendor,
+          child: Text(vendor.name),
+        );
+      }).toList(),
+      onChanged: (Vendor? newValue) {
+        setState(() {
+          _selectedVendor = newValue;
+        });
       },
     );
   }
