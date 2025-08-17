@@ -16,149 +16,133 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final AppDatabase _database = AppDatabase.instance;
-  late Future<KpiData> _kpiDataFuture;
+  late Future<DashboardData> _dashboardDataFuture;
 
   @override
   void initState() {
     super.initState();
-    _kpiDataFuture = _loadKpiData();
+    _dashboardDataFuture = _database.getDashboardData();
   }
 
-  Future<KpiData> _loadKpiData() async {
-    final results = await Future.wait([
-      _database.getTotalReceivables(),
-      _database.getTotalPayables(),
-      _database.getActiveClientsCount(),
-      _database.getOverdueInvoicesCount(),
-    ]);
-    return KpiData(
-      totalReceivables: results[0] as double,
-      totalPayables: results[1] as double,
-      activeClients: results[2] as int,
-      overdueInvoices: results[3] as int,
-    );
+  void _refreshData() {
+    setState(() {
+      _dashboardDataFuture = _database.getDashboardData();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Quick Actions', style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 16),
-        const QuickActions(),
-        const SizedBox(height: 32),
-        Text('Overview', style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 16),
-        _buildKpiGrid(),
-        const SizedBox(height: 32),
-        _buildBottomCards(context),
-        const SizedBox(height: 32),
-        _buildRecentActivity(context),
-      ],
-    );
-  }
-
-  Widget _buildKpiGrid() {
-    return FutureBuilder<KpiData>(
-      future: _kpiDataFuture,
+    return FutureBuilder<DashboardData>(
+      future: _dashboardDataFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: Text('Error loading dashboard: ${snapshot.error}'));
         }
         if (!snapshot.hasData) {
           return const Center(child: Text('No data available.'));
         }
 
-        final kpiData = snapshot.data!;
-        final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+        final data = snapshot.data!;
 
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            int crossAxisCount = 4;
-            if (constraints.maxWidth < 1200) crossAxisCount = 2;
-            if (constraints.maxWidth < 600) crossAxisCount = 1;
-
-            return GridView.count(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: 24,
-              mainAxisSpacing: 24,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: (crossAxisCount == 1) ? 3.0 : 2.0,
-              children: [
-                KpiCard(
-                  title: 'Total Receivables',
-                  value: currencyFormat.format(kpiData.totalReceivables),
-                  change: '+0.0%', // Placeholder
-                  isPositiveChange: true,
-                  icon: LucideIcons.dollarSign,
-                  borderColor: AppColors.success,
-                ),
-                KpiCard(
-                  title: 'Total Payables',
-                  value: currencyFormat.format(kpiData.totalPayables),
-                  change: '-0.0%', // Placeholder
-                  isPositiveChange: false,
-                  icon: LucideIcons.trendingUp,
-                  borderColor: AppColors.warning,
-                ),
-                KpiCard(
-                  title: 'Overdue Invoices',
-                  value: kpiData.overdueInvoices.toString(),
-                  change: '+0', // Placeholder
-                  isPositiveChange: false,
-                  icon: LucideIcons.triangleAlert,
-                  borderColor: AppColors.destructive,
-                ),
-                KpiCard(
-                  title: 'Active Clients',
-                  value: kpiData.activeClients.toString(),
-                  change: '+0', // Placeholder
-                  isPositiveChange: true,
-                  icon: LucideIcons.users,
-                  borderColor: AppColors.primary,
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // NOTE: The widgets below still use placeholder data.
-  // We will connect them to the database in a future step.
-  Widget _buildBottomCards(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth < 1000) {
-          return Column(
-            children: [
-              _buildCashFlowCard(context),
-              const SizedBox(height: 24),
-              _buildActionRequiredCard(context),
-            ],
-          );
-        }
-        return Row(
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(child: _buildCashFlowCard(context)),
-            const SizedBox(width: 24),
-            Expanded(child: _buildActionRequiredCard(context)),
+            Text('Quick Actions', style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 16),
+            const QuickActions(),
+            const SizedBox(height: 32),
+            Text('Overview', style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 16),
+            _buildKpiGrid(data),
+            const SizedBox(height: 32),
+            _buildBottomCards(context, data),
+            const SizedBox(height: 32),
+            _buildRecentActivity(context, data),
           ],
         );
       },
     );
   }
 
-  Widget _buildCashFlowCard(BuildContext context) {
-    // TODO: Replace with live data
+  Widget _buildKpiGrid(DashboardData data) {
+    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        int crossAxisCount = 4;
+        if (constraints.maxWidth < 1200) crossAxisCount = 2;
+        if (constraints.maxWidth < 600) crossAxisCount = 1;
+
+        return GridView.count(
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: 24,
+          mainAxisSpacing: 24,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          childAspectRatio: (crossAxisCount == 1) ? 3.0 : 2.0,
+          children: [
+            KpiCard(
+              title: 'Total Receivables',
+              value: currencyFormat.format(data.totalReceivables),
+              icon: LucideIcons.dollarSign,
+              borderColor: AppColors.success,
+            ),
+            KpiCard(
+              title: 'Total Payables',
+              value: currencyFormat.format(data.totalPayables),
+              icon: LucideIcons.trendingUp,
+              borderColor: AppColors.warning,
+            ),
+            KpiCard(
+              title: 'Overdue Invoices',
+              value: data.overdueInvoicesCount.toString(),
+              icon: LucideIcons.triangleAlert,
+              borderColor: AppColors.destructive,
+            ),
+            KpiCard(
+              title: 'Active Clients',
+              value: data.activeClients.toString(),
+              icon: LucideIcons.users,
+              borderColor: AppColors.primary,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBottomCards(BuildContext context, DashboardData data) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 1000) {
+          return Column(
+            children: [
+              _buildCashFlowCard(context, data),
+              const SizedBox(height: 24),
+              _buildActionRequiredCard(context, data),
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildCashFlowCard(context, data)),
+            const SizedBox(width: 24),
+            Expanded(child: _buildActionRequiredCard(context, data)),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildCashFlowCard(BuildContext context, DashboardData data) {
     final textTheme = Theme.of(context).textTheme;
+    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final netFlow = data.moneyInThisMonth - data.moneyOutThisMonth;
+
     return Card(
       child: Container(
         decoration: const BoxDecoration(
@@ -178,15 +162,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-              _buildCashFlowItem(context, 'Money In', '\$35,650', AppColors.success, true),
+              _buildCashFlowItem(context, 'Money In', currencyFormat.format(data.moneyInThisMonth), AppColors.success, true),
               const SizedBox(height: 16),
-              _buildCashFlowItem(context, 'Money Out', '\$12,340', AppColors.destructive, false),
+              _buildCashFlowItem(context, 'Money Out', currencyFormat.format(data.moneyOutThisMonth), AppColors.destructive, false),
               const Divider(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Net Cash Flow:', style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500)),
-                  Text('+\$23,310', style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, color: AppColors.success, fontFamily: 'monospace')),
+                  Text(
+                    '${netFlow >= 0 ? '+' : ''}${currencyFormat.format(netFlow)}', 
+                    style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, color: netFlow >= 0 ? AppColors.success : AppColors.destructive, fontFamily: 'monospace')
+                  ),
                 ],
               ),
             ],
@@ -219,8 +206,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildActionRequiredCard(BuildContext context) {
-    // TODO: Replace with live data
+  Widget _buildActionRequiredCard(BuildContext context, DashboardData data) {
     final textTheme = Theme.of(context).textTheme;
     return Card(
       child: Container(
@@ -241,24 +227,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-              const ActionItemCard(
+              ActionItemCard(
                 icon: LucideIcons.circleX,
                 color: AppColors.destructive,
-                title: '3 Overdue Invoices',
-                subtitle: 'Total: \$7,150 - Follow up required',
+                title: '${data.overdueInvoicesCount} Overdue Invoices',
+                subtitle: 'Follow up required',
               ),
               const SizedBox(height: 16),
-              const ActionItemCard(
+              ActionItemCard(
                 icon: LucideIcons.triangleAlert,
                 color: AppColors.warning,
-                title: '5 Invoices Due Soon',
-                subtitle: 'Due within 7 days - Send reminders',
+                title: '${data.invoicesDueSoonCount} Invoices Due Soon',
+                subtitle: 'Due within 7 days',
               ),
               const SizedBox(height: 16),
-              const ActionItemCard(
+              ActionItemCard(
                 icon: LucideIcons.fileText,
                 color: AppColors.accent,
-                title: '2 Draft Invoices',
+                title: '${data.draftInvoicesCount} Draft Invoices',
                 subtitle: 'Ready to be sent to clients',
               ),
             ],
@@ -268,14 +254,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildRecentActivity(BuildContext context) {
-    // TODO: Replace with live data
-    final activities = [
-      {'icon': LucideIcons.circleCheck, 'color': AppColors.success, 'title': 'Invoice #1024 paid', 'subtitle': '\$2,500 from Acme Corp', 'time': '2 hours ago'},
-      {'icon': LucideIcons.users, 'color': AppColors.info, 'title': "New client 'Tech Solutions' added", 'subtitle': 'Contact: hello@techsolutions.com', 'time': '4 hours ago'},
-      {'icon': LucideIcons.fileText, 'color': AppColors.info, 'title': 'Invoice #1025 created', 'subtitle': '\$1,800 for Design Studio LLC', 'time': '6 hours ago'},
-      {'icon': LucideIcons.circleX, 'color': AppColors.destructive, 'title': 'Invoice #1020 is overdue', 'subtitle': '\$3,200 from Marketing Agency', 'time': '1 day ago'},
-    ];
+  Widget _buildRecentActivity(BuildContext context, DashboardData data) {
+    final currencyFormat = NumberFormat.currency(symbol: '\$');
+    
+    IconData _getActivityIcon(ActivityType type) {
+      switch(type) {
+        case ActivityType.invoice: return LucideIcons.fileText;
+        case ActivityType.client: return LucideIcons.users;
+        case ActivityType.expense: return LucideIcons.receipt;
+      }
+    }
+    
+    Color _getActivityColor(ActivityType type) {
+      switch(type) {
+        case ActivityType.invoice: return AppColors.info;
+        case ActivityType.client: return AppColors.primary;
+        case ActivityType.expense: return AppColors.warning;
+      }
+    }
 
     return Card(
       child: Padding(
@@ -290,34 +286,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text('Recent Activity', style: Theme.of(context).textTheme.titleLarge),
               ],
             ),
-            Text(
-              'Latest updates and transactions',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
             const SizedBox(height: 24),
-            ListView.separated(
-              itemCount: activities.length,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              separatorBuilder: (context, index) => const Divider(height: 32),
-              itemBuilder: (context, index) {
-                final activity = activities[index];
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: (activity['color'] as Color).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+            if (data.recentActivities.isEmpty)
+              const Center(child: Text('No recent activity.'))
+            else
+              ListView.separated(
+                itemCount: data.recentActivities.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                separatorBuilder: (context, index) => const Divider(height: 32),
+                itemBuilder: (context, index) {
+                  final activity = data.recentActivities[index];
+                  final color = _getActivityColor(activity.type);
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(_getActivityIcon(activity.type), color: color, size: 20),
                     ),
-                    child: Icon(activity['icon'] as IconData, color: activity['color'] as Color, size: 20),
-                  ),
-                  title: Text(activity['title'] as String, style: const TextStyle(fontWeight: FontWeight.w500)),
-                  subtitle: Text(activity['subtitle'] as String),
-                  trailing: Text(activity['time'] as String, style: Theme.of(context).textTheme.bodyMedium),
-                );
-              },
-            ),
+                    title: Text(activity.description, style: const TextStyle(fontWeight: FontWeight.w500)),
+                    subtitle: Text(DateFormat.yMMMd().add_jm().format(activity.date)),
+                    trailing: Text(
+                      currencyFormat.format(activity.amount), 
+                      style: TextStyle(
+                        fontFamily: 'monospace', 
+                        color: activity.amount >= 0 ? AppColors.success : AppColors.destructive
+                      )
+                    ),
+                  );
+                },
+              ),
           ],
         ),
       ),

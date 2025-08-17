@@ -43,6 +43,7 @@ class AppDatabase extends _$AppDatabase {
         await m.createAll();
       },
       onUpgrade: (Migrator m, int from, int to) async {
+        // ... migrations remain the same
         if (from < 2) {
           await m.createTable(licenses);
           await m.drop(users);
@@ -65,7 +66,67 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  // --- KPI Methods for Dashboard ---
+  // --- Dashboard Data Fetching ---
+  Future<DashboardData> getDashboardData() async {
+    final now = DateTime.now();
+    final startOfMonth = DateTime(now.year, now.month, 1);
+    
+    // KPIs
+    final totalReceivablesFuture = getTotalReceivables();
+    final totalPayablesFuture = getTotalPayables();
+    final activeClientsCountFuture = getActiveClientsCount();
+    
+    // Action Items
+    final overdueInvoicesCountFuture = (select(invoices)..where((i) => i.status.equals('Overdue'))).get().then((l) => l.length);
+    // CORRECTED LINE BELOW
+    final invoicesDueSoonCountFuture = (select(invoices)..where((i) => i.status.equals('Pending') & i.dueDate.isSmallerThanValue(now.add(const Duration(days: 7))))).get().then((l) => l.length);
+    final draftInvoicesCountFuture = (select(invoices)..where((i) => i.status.equals('Draft'))).get().then((l) => l.length);
+
+    // Cash Flow
+    final moneyInExpr = invoices.totalAmount.sum();
+    final moneyInQuery = selectOnly(invoices)..addColumns([moneyInExpr])..where(invoices.status.equals('Paid') & invoices.issueDate.isBiggerOrEqualValue(startOfMonth));
+    final moneyInFuture = moneyInQuery.map((row) => row.read(moneyInExpr) ?? 0.0).getSingle();
+
+    final moneyOutExpr = expenses.amount.sum();
+    final moneyOutQuery = selectOnly(expenses)..addColumns([moneyOutExpr])..where(expenses.date.isBiggerOrEqualValue(startOfMonth));
+    final moneyOutFuture = moneyOutQuery.map((row) => row.read(moneyOutExpr) ?? 0.0).getSingle();
+
+    // Recent Activities
+    final recentInvoicesFuture = (select(invoices)..orderBy([(i) => OrderingTerm.desc(i.createdAt)])..limit(2)).get();
+    final recentClientsFuture = (select(clients)..orderBy([(c) => OrderingTerm.desc(c.createdAt)])..limit(2)).get();
+    final recentExpensesFuture = (select(expenses)..orderBy([(e) => OrderingTerm.desc(e.createdAt)])..limit(2)).get();
+
+    final results = await Future.wait([
+      totalReceivablesFuture, totalPayablesFuture, activeClientsCountFuture,
+      overdueInvoicesCountFuture, invoicesDueSoonCountFuture, draftInvoicesCountFuture,
+      moneyInFuture, moneyOutFuture,
+      recentInvoicesFuture, recentClientsFuture, recentExpensesFuture,
+    ]);
+
+    final allActivities = [
+      ...(results[8] as List<Invoice>).map((i) => RecentActivity(date: i.createdAt, type: ActivityType.invoice, description: 'Invoice ${i.invoiceNumber} created', amount: i.totalAmount)),
+      ...(results[9] as List<Client>).map((c) => RecentActivity(date: c.createdAt, type: ActivityType.client, description: 'New client added: ${c.name}', amount: c.balance)),
+      ...(results[10] as List<Expense>).map((e) => RecentActivity(date: e.createdAt, type: ActivityType.expense, description: e.description, amount: -e.amount)),
+    ];
+
+    allActivities.sort((a, b) => b.date.compareTo(a.date));
+
+
+    return DashboardData(
+      totalReceivables: results[0] as double,
+      totalPayables: results[1] as double,
+      activeClients: results[2] as int,
+      overdueInvoicesCount: results[3] as int,
+      invoicesDueSoonCount: results[4] as int,
+      draftInvoicesCount: results[5] as int,
+      moneyInThisMonth: results[6] as double,
+      moneyOutThisMonth: results[7] as double,
+      recentActivities: allActivities.take(5).toList(),
+    );
+  }
+
+
+  // --- KPI Methods (used by getDashboardData) ---
   Future<double> getTotalReceivables() {
     final total = clients.balance.sum();
     final query = selectOnly(clients)..addColumns([total])..where(clients.balance.isBiggerThanValue(0));
@@ -84,14 +145,8 @@ class AppDatabase extends _$AppDatabase {
     return query.map((row) => row.read(count) ?? 0).getSingle();
   }
 
-  Future<int> getOverdueInvoicesCount() {
-    final count = invoices.id.count();
-    final query = selectOnly(invoices)..addColumns([count])..where(invoices.status.equals('Overdue'));
-    return query.map((row) => row.read(count) ?? 0).getSingle();
-  }
-
-
-  // --- Client Methods ---
+  // ... other methods for clients, expenses, inventory, invoices, auth etc. remain the same
+    // --- Client Methods ---
   Future<List<Client>> getAllClients() => select(clients).get();
   Stream<List<Client>> watchAllClients() => select(clients).watch();
   Future<int> insertClient(ClientsCompanion client) =>
@@ -206,20 +261,40 @@ class InvoiceDetails {
   InvoiceDetails({required this.invoice, required this.client, required this.lineItems});
 }
 
-// Data class to hold all dashboard KPI values
-class KpiData {
+enum ActivityType { invoice, client, expense }
+
+class RecentActivity {
+  final DateTime date;
+  final ActivityType type;
+  final String description;
+  final double amount;
+  RecentActivity({required this.date, required this.type, required this.description, required this.amount});
+}
+
+class DashboardData {
   final double totalReceivables;
   final double totalPayables;
   final int activeClients;
-  final int overdueInvoices;
+  final int overdueInvoicesCount;
+  final int invoicesDueSoonCount;
+  final int draftInvoicesCount;
+  final double moneyInThisMonth;
+  final double moneyOutThisMonth;
+  final List<RecentActivity> recentActivities;
 
-  KpiData({
+  DashboardData({
     required this.totalReceivables,
     required this.totalPayables,
     required this.activeClients,
-    required this.overdueInvoices,
+    required this.overdueInvoicesCount,
+    required this.invoicesDueSoonCount,
+    required this.draftInvoicesCount,
+    required this.moneyInThisMonth,
+    required this.moneyOutThisMonth,
+    required this.recentActivities,
   });
 }
+
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
