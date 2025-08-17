@@ -1,22 +1,28 @@
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 
 import 'package:accountanter/data/database.dart';
 import 'package:accountanter/theme/app_colors.dart';
 
-class LineItem {
-  String description;
-  int quantity;
-  double unitPrice;
-  double get total => quantity * unitPrice;
+// Helper class to manage controllers for each line item
+class LineItemControllers {
+  final TextEditingController descriptionController;
+  final TextEditingController quantityController;
+  final TextEditingController unitPriceController;
 
-  LineItem({
-    this.description = '',
-    this.quantity = 1,
-    this.unitPrice = 0.0,
-  });
+  LineItemControllers()
+      : descriptionController = TextEditingController(),
+        quantityController = TextEditingController(text: '1'),
+        unitPriceController = TextEditingController(text: '0.00');
+
+  void dispose() {
+    descriptionController.dispose();
+    quantityController.dispose();
+    unitPriceController.dispose();
+  }
 }
 
 class InvoiceEditorScreen extends StatefulWidget {
@@ -40,14 +46,13 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
   late TextEditingController _issueDateController;
   late TextEditingController _dueDateController;
   late TextEditingController _notesController;
-  late List<LineItem> _lineItems;
+  final List<LineItemControllers> _lineItemControllers = [];
   DateTime _issueDate = DateTime.now();
   DateTime? _dueDate;
 
   @override
   void initState() {
     super.initState();
-    // Initialize form fields based on whether we are editing or creating
     if (_isEditing) {
       final inv = widget.invoice!;
       // In a real app, you would fetch the client and line items for this invoice
@@ -55,11 +60,11 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
       _issueDate = inv.issueDate;
       _dueDate = inv.dueDate;
       _notesController = TextEditingController(text: inv.notes ?? '');
-      _lineItems = []; // Placeholder, would be fetched from db
+       // TODO: Fetch and populate line items for editing
     } else {
-      _invoiceNumberController = TextEditingController(text: 'INV-001'); // Placeholder
+      _invoiceNumberController = TextEditingController(); // Will be generated on save
       _notesController = TextEditingController();
-      _lineItems = [LineItem()]; // Start with one empty line item
+      _addLineItem(); // Start with one empty line item
     }
     _issueDateController = TextEditingController(text: DateFormat('yyyy-MM-dd').format(_issueDate));
     _dueDateController = TextEditingController(text: _dueDate != null ? DateFormat('yyyy-MM-dd').format(_dueDate!) : '');
@@ -71,22 +76,26 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
     _issueDateController.dispose();
     _dueDateController.dispose();
     _notesController.dispose();
+    for (var controller in _lineItemControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
   
   void _addLineItem() {
     setState(() {
-      _lineItems.add(LineItem());
+      _lineItemControllers.add(LineItemControllers());
     });
   }
 
   void _removeLineItem(int index) {
     setState(() {
-      _lineItems.removeAt(index);
+      _lineItemControllers[index].dispose();
+      _lineItemControllers.removeAt(index);
     });
   }
   
-  void _updateLineItem() {
+  void _updateTotals() {
     setState(() {}); // Just trigger a rebuild to update totals
   }
 
@@ -110,8 +119,66 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
     }
   }
 
+  Future<void> _handleSave(String status) async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    if (_selectedClient == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a client.')));
+      return;
+    }
+    if (_lineItemControllers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add at least one line item.')));
+      return;
+    }
+    
+    final subtotal = _calculateSubtotal();
+    final tax = subtotal * 0.1; // Placeholder 10% tax
+    final total = subtotal + tax;
+
+    final invoiceCompanion = InvoicesCompanion(
+      id: _isEditing ? Value(widget.invoice!.id) : const Value.absent(),
+      invoiceNumber: Value(_invoiceNumberController.text.isNotEmpty ? _invoiceNumberController.text : 'INV-${DateTime.now().millisecondsSinceEpoch}'),
+      clientId: Value(_selectedClient!.id),
+      issueDate: Value(_issueDate),
+      dueDate: Value(_dueDate ?? _issueDate.add(const Duration(days: 30))),
+      subtotal: Value(subtotal),
+      taxAmount: Value(tax),
+      totalAmount: Value(total),
+      status: Value(status),
+      notes: Value(_notesController.text),
+    );
+
+    final lineItemsCompanions = _lineItemControllers.map((controllers) {
+      final quantity = int.tryParse(controllers.quantityController.text) ?? 0;
+      final unitPrice = double.tryParse(controllers.unitPriceController.text) ?? 0.0;
+      return LineItemsCompanion(
+        description: Value(controllers.descriptionController.text),
+        quantity: Value(quantity),
+        unitPrice: Value(unitPrice),
+        total: Value(quantity * unitPrice),
+      );
+    }).toList();
+    
+    await _database.createOrUpdateInvoice(invoiceCompanion, lineItemsCompanions);
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invoice saved as $status')));
+      Navigator.of(context).pop();
+    }
+  }
+
+  double _calculateSubtotal() {
+    return _lineItemControllers.fold(0.0, (sum, controllers) {
+      final quantity = int.tryParse(controllers.quantityController.text) ?? 0;
+      final unitPrice = double.tryParse(controllers.unitPriceController.text) ?? 0.0;
+      return sum + (quantity * unitPrice);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Scaffold and main layout are the same...
     return Scaffold(
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -135,7 +202,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
       ),
     );
   }
-
+  // All other _build... methods remain the same as before
   Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -164,9 +231,9 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
         ),
         Row(
           children: [
-            OutlinedButton(onPressed: () {}, child: const Text('Save as Draft')),
+            OutlinedButton(onPressed: () => _handleSave('Draft'), child: const Text('Save as Draft')),
             const SizedBox(width: 12),
-            ElevatedButton(onPressed: () {}, child: const Text('Save and Send')),
+            ElevatedButton(onPressed: () => _handleSave('Pending'), child: const Text('Save and Send')),
           ],
         ),
       ],
@@ -303,7 +370,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: _lineItems.length,
+              itemCount: _lineItemControllers.length,
               itemBuilder: (context, index) {
                 return _buildLineItemRow(index);
               },
@@ -322,46 +389,46 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
   }
   
   Widget _buildLineItemRow(int index) {
-    final item = _lineItems[index];
+    final controllers = _lineItemControllers[index];
+    final quantity = int.tryParse(controllers.quantityController.text) ?? 0;
+    final unitPrice = double.tryParse(controllers.unitPriceController.text) ?? 0.0;
+    final total = quantity * unitPrice;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(flex: 4, child: TextFormField(
-            initialValue: item.description,
-            onChanged: (val) => item.description = val,
+            controller: controllers.descriptionController,
             decoration: const InputDecoration(isDense: true, hintText: 'Item description'),
+            validator: (v) => v!.isEmpty ? 'Required' : null,
           )),
           const SizedBox(width: 8),
           Expanded(flex: 1, child: TextFormField(
-            initialValue: item.quantity.toString(),
-            onChanged: (val) {
-              item.quantity = int.tryParse(val) ?? 1;
-              _updateLineItem();
-            },
+            controller: controllers.quantityController,
+            onChanged: (_) => _updateTotals(),
             textAlign: TextAlign.center,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: const InputDecoration(isDense: true),
+            validator: (v) => (v == null || v.isEmpty || int.tryParse(v) == null) ? '!' : null,
           )),
           const SizedBox(width: 8),
           Expanded(flex: 2, child: TextFormField(
-            initialValue: item.unitPrice.toStringAsFixed(2),
-            onChanged: (val) {
-              item.unitPrice = double.tryParse(val) ?? 0.0;
-              _updateLineItem();
-            },
+            controller: controllers.unitPriceController,
+            onChanged: (_) => _updateTotals(),
             textAlign: TextAlign.right,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
             decoration: const InputDecoration(isDense: true, prefixText: '\$'),
+            validator: (v) => (v == null || v.isEmpty || double.tryParse(v) == null) ? '!' : null,
           )),
           const SizedBox(width: 8),
           Expanded(flex: 2, child: Padding(
             padding: const EdgeInsets.only(top: 12.0),
             child: Text(
-              NumberFormat.currency(symbol: '\$').format(item.total),
+              NumberFormat.currency(symbol: '\$').format(total),
               textAlign: TextAlign.right,
               style: const TextStyle(fontFamily: 'monospace'),
             ),
@@ -376,7 +443,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
   }
 
   Widget _buildSummaryAndNotes() {
-    final subtotal = _lineItems.fold(0.0, (sum, item) => sum + item.total);
+    final subtotal = _calculateSubtotal();
     const taxRate = 0.1; // Placeholder 10% tax
     final tax = subtotal * taxRate;
     final total = subtotal + tax;
