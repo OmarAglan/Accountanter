@@ -1,0 +1,344 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Base font size - will be used for rem calculations */
+  --font-size: 16px;
+  
+  /* Color Palette as specified */
+  --primary: #2c3e50; /* Deep slate blue */
+  --primary-foreground: #ffffff;
+  --accent: #1abc9c; /* Vibrant teal for CTAs */
+  --accent-foreground: #ffffff;
+  
+  /* Background and surface colors */
+  --background: #f4f7fa; /* Very light soft gray */
+  --foreground: #34495e; /* Dark charcoal for primary text */
+  --card: #ffffff; /* White containers */
+  --card-foreground: #34495e;
+  --popover: #ffffff;
+  --popover-foreground: #34495e;
+  
+  /* Secondary and muted colors */
+  --secondary: #ecf0f1;
+  --secondary-foreground: #34495e;
+  --muted: #f8f9fa;
+  --muted-foreground: #7f8c8d; /* Medium gray for secondary text */
+  
+  /* Border and input colors */
+  --border: #e1e5e8; /* Light gray for borders/dividers */
+  --input: transparent;
+  --input-background: #ffffff;
+  --ring: #1abc9c; /* Teal for focus rings */
+  
+  /* Sidebar specific colors */
+  --sidebar: #2c3e50; /* Primary color for sidebar */
+  --sidebar-foreground: #ecf0f1;
+  --sidebar-primary: #1abc9c; /* Teal for active states */
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #34495e; /* Darker slate for hover states */
+  --sidebar-accent-foreground: #ecf0f1;
+  --sidebar-border: #34495e;
+  --sidebar-ring: #1abc9c;
+  
+  /* Semantic colors as specified */
+  --success: #27ae60; /* Green for paid status, positive values */
+  --success-foreground: #ffffff;
+  --warning: #f1c40f; /* Yellow for pending/due soon */
+  --warning-foreground: #2c3e50;
+  --destructive: #e74c3c; /* Red for overdue, errors, negative values */
+  --destructive-foreground: #ffffff;
+  --info: #3498db;
+  --info-foreground: #ffffff;
+  
+  /* Financial specific semantic colors */
+  --profit: #27ae60;
+  --loss: #e74c3c;
+  --pending: #f1c40f;
+  --paid: #27ae60;
+  --overdue: #e74c3c;
+  
+  /* Border radius */
+  --radius: 6px; /* Slightly rounded corners as specified */
+  
+  /* Font weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Chart colors */
+  --chart-1: #1abc9c;
+  --chart-2: #27ae60;
+  --chart-3: #f39c12;
+  --chart-4: #e74c3c;
+  --chart-5: #9b59b6;
+  
+  /* Switch background */
+  --switch-background: #bdc3c7;
+}
+
+.dark {
+  --background: #1a252f;
+  --foreground: #ecf0f1;
+  --card: #2c3e50;
+  --card-foreground: #ecf0f1;
+  --popover: #2c3e50;
+  --popover-foreground: #ecf0f1;
+  --primary: #3498db;
+  --primary-foreground: #ffffff;
+  --secondary: #34495e;
+  --secondary-foreground: #ecf0f1;
+  --muted: #2c3e50;
+  --muted-foreground: #95a5a6;
+  --accent: #1abc9c;
+  --accent-foreground: #ffffff;
+  --destructive: #e74c3c;
+  --destructive-foreground: #ffffff;
+  --border: #34495e;
+  --input: #34495e;
+  --ring: #1abc9c;
+  --sidebar: #1a252f;
+  --sidebar-foreground: #ecf0f1;
+  --sidebar-primary: #1abc9c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2c3e50;
+  --sidebar-accent-foreground: #ecf0f1;
+  --sidebar-border: #34495e;
+  --sidebar-ring: #1abc9c;
+  
+  /* Dark mode semantic colors */
+  --success: #2ecc71;
+  --success-foreground: #ffffff;
+  --warning: #f1c40f;
+  --warning-foreground: #2c3e50;
+  --info: #3498db;
+  --info-foreground: #ffffff;
+  --profit: #2ecc71;
+  --loss: #e74c3c;
+  --pending: #f1c40f;
+  --paid: #2ecc71;
+  --overdue: #e74c3c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-profit: var(--profit);
+  --color-loss: var(--loss);
+  --color-pending: var(--pending);
+  --color-paid: var(--paid);
+  --color-overdue: var(--overdue);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  }
+}
+
+/**
+ * Typography hierarchy as specified
+ * Using the exact sizes and weights requested
+ */
+@layer base {
+  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+    /* Heading 1 (Page Title): 28px, Bold */
+    h1 {
+      font-size: 1.75rem; /* 28px */
+      font-weight: var(--font-weight-bold);
+      line-height: 1.3;
+      letter-spacing: -0.025em;
+      color: var(--color-foreground);
+    }
+
+    /* Heading 2 (Section Title): 22px, Semi-Bold */
+    h2 {
+      font-size: 1.375rem; /* 22px */
+      font-weight: var(--font-weight-semibold);
+      line-height: 1.4;
+      letter-spacing: -0.025em;
+      color: var(--color-foreground);
+    }
+
+    /* Heading 3 (Card Title): 18px, Medium */
+    h3 {
+      font-size: 1.125rem; /* 18px */
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+      color: var(--color-foreground);
+    }
+
+    h4 {
+      font-size: 1rem; /* 16px */
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+      color: var(--color-foreground);
+    }
+
+    /* Body (Main Text): 16px, Regular */
+    p {
+      font-size: 1rem; /* 16px */
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+      color: var(--color-foreground);
+    }
+
+    /* Caption/Sub-text: 14px, Regular */
+    small, .caption {
+      font-size: 0.875rem; /* 14px */
+      font-weight: var(--font-weight-normal);
+      line-height: 1.4;
+      color: var(--color-muted-foreground);
+    }
+
+    /* Button Text: 16px, Medium */
+    button {
+      font-size: 1rem; /* 16px */
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+    }
+
+    /* Form elements */
+    label {
+      font-size: 0.875rem; /* 14px */
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+      color: var(--color-foreground);
+    }
+
+    input, select, textarea {
+      font-size: 1rem; /* 16px */
+      font-weight: var(--font-weight-normal);
+      line-height: 1.4;
+    }
+
+    /* Table styling */
+    table {
+      font-size: 0.875rem; /* 14px */
+      line-height: 1.4;
+    }
+
+    th {
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-foreground);
+    }
+
+    td {
+      font-weight: var(--font-weight-normal);
+      color: var(--color-foreground);
+    }
+  }
+}
+
+/* Financial number formatting with monospace for better alignment */
+.financial-amount {
+  font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.025em;
+}
+
+/* Semantic color utility classes */
+.profit {
+  color: var(--color-profit);
+}
+
+.loss {
+  color: var(--color-loss);
+}
+
+.pending {
+  color: var(--color-pending);
+}
+
+.paid {
+  color: var(--color-paid);
+}
+
+.overdue {
+  color: var(--color-overdue);
+}
+
+.success {
+  color: var(--color-success);
+}
+
+.warning {
+  color: var(--color-warning);
+}
+
+.danger {
+  color: var(--color-destructive);
+}
+
+/* Card enhancements with subtle shadows */
+.card-shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.card-shadow-hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Table row hover states for better UX */
+.table-row-hover:hover {
+  background-color: var(--color-muted);
+}
+
+/* Focus states for accessibility */
+.focus-ring:focus {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+html {
+  font-size: var(--font-size);
+}
