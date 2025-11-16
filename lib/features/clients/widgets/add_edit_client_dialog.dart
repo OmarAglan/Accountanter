@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../../../data/database.dart';
@@ -44,7 +45,7 @@ class _AddEditClientDialogState extends State<AddEditClientDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(_isEditing ? 'Edit Client' : 'Add New Client'),
+      title: Text(_isEditing ? AppLocalizations.of(context)!.editClient : AppLocalizations.of(context)!.addNewClient),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -53,19 +54,19 @@ class _AddEditClientDialogState extends State<AddEditClientDialog> {
             children: [
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Client Name'),
-                validator: (v) => v!.isEmpty ? 'Name is required' : null,
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.clientName),
+                validator: (v) => v!.isEmpty ? AppLocalizations.of(context)!.fieldRequired : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email Or Phone'),
+                decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.email} / ${AppLocalizations.of(context)!.phone}'),
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _selectedType,
-                decoration: const InputDecoration(labelText: 'Client Type'),
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.client),
                 items: ['Debtor', 'Creditor']
                     .map((type) => DropdownMenuItem(value: type, child: Text(type)))
                     .toList(),
@@ -94,7 +95,7 @@ class _AddEditClientDialogState extends State<AddEditClientDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         ElevatedButton(
           onPressed: () {
@@ -109,7 +110,7 @@ class _AddEditClientDialogState extends State<AddEditClientDialog> {
               Navigator.of(context).pop();
             }
           },
-          child: Text(_isEditing ? 'Update Client' : 'Save Client'),
+          child: Text(_isEditing ? AppLocalizations.of(context)!.update : AppLocalizations.of(context)!.save),
         ),
       ],
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -110,16 +111,16 @@ class _InventoryScreenState extends State<InventoryScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete Item'),
-          content: Text('Are you sure you want to delete "${item.name}"? This action cannot be undone.'),
+          title: Text(AppLocalizations.of(context)!.deleteInventoryItem),
+          content: Text('${AppLocalizations.of(context)!.confirmDeleteInventoryItem} "${item.name}"? ${AppLocalizations.of(context)!.deleteConfirmation}'),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
               style: TextButton.styleFrom(foregroundColor: AppColors.destructive),
-              child: const Text('Delete'),
+              child: Text(AppLocalizations.of(context)!.delete),
               onPressed: () {
                 _database.deleteInventoryItem(item.id);
                 Navigator.of(context).pop();
@@ -171,7 +172,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Inventory', style: Theme.of(context).textTheme.headlineMedium),
+            Text(AppLocalizations.of(context)!.inventory, style: Theme.of(context).textTheme.headlineMedium),
             Text(
               'Manage your product inventory and stock levels.',
               style: Theme.of(context).textTheme.bodyMedium,
@@ -181,7 +182,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         ElevatedButton.icon(
           onPressed: _showAddItemDialog,
           icon: const Icon(LucideIcons.plus, size: 16),
-          label: const Text('Add Product'),
+          label: Text(AppLocalizations.of(context)!.addInventoryItem),
         )
       ],
     );
@@ -249,10 +250,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
           physics: const NeverScrollableScrollPhysics(),
           childAspectRatio: childAspectRatio,
           children: [
-            InventorySummaryCard(icon: LucideIcons.package, title: 'Total Products', value: items.length.toString(), color: AppColors.primary),
-            InventorySummaryCard(icon: LucideIcons.archive, title: 'Total Value', value: currencyFormat.format(totalValue), color: AppColors.success),
-            InventorySummaryCard(icon: LucideIcons.triangleAlert, title: 'Low Stock', value: lowStockCount.toString(), color: AppColors.warning),
-            InventorySummaryCard(icon: LucideIcons.packageX, title: 'Out of Stock', value: outOfStockCount.toString(), color: AppColors.destructive),
+            InventorySummaryCard(icon: LucideIcons.package, title: AppLocalizations.of(context)!.inventory, value: items.length.toString(), color: AppColors.primary),
+            InventorySummaryCard(icon: LucideIcons.archive, title: AppLocalizations.of(context)!.total, value: currencyFormat.format(totalValue), color: AppColors.success),
+            InventorySummaryCard(icon: LucideIcons.triangleAlert, title: AppLocalizations.of(context)!.lowStock, value: lowStockCount.toString(), color: AppColors.warning),
+            InventorySummaryCard(icon: LucideIcons.packageX, title: AppLocalizations.of(context)!.outOfStock, value: outOfStockCount.toString(), color: AppColors.destructive),
           ],
         );
       }
@@ -266,7 +267,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         child: TextField(
           onChanged: (value) => setState(() => _searchTerm = value),
           decoration: const InputDecoration(
-            hintText: 'Search products by name, SKU, or category...',
+            hintText: AppLocalizations.of(context)!.searchInventory,
             prefixIcon: Icon(LucideIcons.search, size: 16),
             isDense: true,
           ),
@@ -284,21 +285,21 @@ class _InventoryScreenState extends State<InventoryScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Text('Product Inventory', style: textTheme.titleLarge),
+            child: Text(AppLocalizations.of(context)!.inventory, style: textTheme.titleLarge),
           ),
           const Divider(height: 1),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
               columns: const [
-                DataColumn(label: Text('Product Name')),
-                DataColumn(label: Text('SKU')),
-                DataColumn(label: Text('Category')),
-                DataColumn(label: Text('Quantity')),
-                DataColumn(label: Text('Unit Price')),
-                DataColumn(label: Text('Total Value')),
-                DataColumn(label: Text('Status')),
-                DataColumn(label: Text('Actions')),
+                DataColumn(label: Text(AppLocalizations.of(context)!.itemName)),
+                DataColumn(label: Text(AppLocalizations.of(context)!.sku)),
+                DataColumn(label: Text(AppLocalizations.of(context)!.category)),
+                DataColumn(label: Text(AppLocalizations.of(context)!.quantity)),
+                DataColumn(label: Text(AppLocalizations.of(context)!.unitPrice)),
+                DataColumn(label: Text(AppLocalizations.of(context)!.total)),
+                DataColumn(label: Text(AppLocalizations.of(context)!.status)),
+                DataColumn(label: Text(AppLocalizations.of(context)!.actions)),
               ],
               rows: items.map((itemDetails) => _buildDataRow(itemDetails)).toList(),
             ),
@@ -306,7 +307,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
            if (items.isEmpty)
             const Padding(
               padding: EdgeInsets.all(32.0),
-              child: Center(child: Text('No items found.')),
+              child: Center(child: Text(AppLocalizations.of(context)!.noInventoryItems)),
             )
         ],
       ),
@@ -321,13 +322,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
     String status;
     Color statusColor;
     if (item.quantity == 0) {
-      status = 'Out of Stock';
+      status = AppLocalizations.of(context)!.outOfStock;
       statusColor = AppColors.destructive;
     } else if (item.quantity <= item.minStock) {
-      status = 'Low Stock';
+      status = AppLocalizations.of(context)!.lowStock;
       statusColor = AppColors.warning;
     } else {
-      status = 'In Stock';
+      status = AppLocalizations.of(context)!.inStock;
       statusColor = AppColors.success;
     }
 
@@ -356,8 +357,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
           }
         },
         itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-          const PopupMenuItem<String>(value: 'edit', child: Text('Edit')),
-          const PopupMenuItem<String>(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.destructive))),
+          PopupMenuItem<String>(value: 'edit', child: Text(AppLocalizations.of(context)!.edit)),
+          PopupMenuItem<String>(value: 'delete', child: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: AppColors.destructive))),
         ],
         icon: const Icon(LucideIcons.ellipsisVertical, size: 16),
       )),

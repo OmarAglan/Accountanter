@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:intl/intl.dart';
 
@@ -143,11 +144,11 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
   Future<void> _handleSave(String status) async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedClient == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a client.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.pleaseSelect + ' ' + AppLocalizations.of(context)!.client)));
       return;
     }
     if (_lineItemControllers.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add at least one line item.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${AppLocalizations.of(context)!.add} ${AppLocalizations.of(context)!.items}')));
       return;
     }
     
@@ -182,7 +183,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
     await _database.createOrUpdateInvoice(invoiceCompanion, lineItemsCompanions);
     
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invoice saved as $status')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${AppLocalizations.of(context)!.invoices} ${AppLocalizations.of(context)!.save} $status')));
       Navigator.of(context).pop();
     }
   }
@@ -239,7 +240,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _isEditing ? 'Edit Invoice ${_invoiceNumberController.text}' : 'Create New Invoice',
+                  _isEditing ? '${AppLocalizations.of(context)!.editInvoice} ${_invoiceNumberController.text}' : AppLocalizations.of(context)!.createInvoice,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 Text(
@@ -252,9 +253,9 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
         ),
         Row(
           children: [
-            OutlinedButton(onPressed: () => _handleSave('Draft'), child: const Text('Save as Draft')),
+            OutlinedButton(onPressed: () => _handleSave('Draft'), child: Text(AppLocalizations.of(context)!.saveAsDraft)),
             const SizedBox(width: 12),
-            ElevatedButton(onPressed: () => _handleSave('Pending'), child: const Text('Save and Send')),
+            ElevatedButton(onPressed: () => _handleSave('Pending'), child: Text(AppLocalizations.of(context)!.saveAndSend)),
           ],
         ),
       ],
@@ -316,13 +317,13 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
                 final clients = snapshot.data!;
                 return DropdownButtonFormField<Client>(
                   value: _selectedClient,
-                  hint: const Text('Select a client'),
+                  hint: Text(AppLocalizations.of(context)!.selectClient),
                   items: clients.map((client) => DropdownMenuItem(
                     value: client,
                     child: Text(client.name),
                   )).toList(),
                   onChanged: (client) => setState(() => _selectedClient = client),
-                   validator: (value) => value == null ? 'Please select a client' : null,
+                   validator: (value) => value == null ? AppLocalizations.of(context)!.fieldRequired : null,
                 );
               }
             ),
@@ -339,26 +340,26 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Invoice Details', style: Theme.of(context).textTheme.titleLarge),
+            Text(AppLocalizations.of(context)!.invoices, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             LayoutBuilder(
               builder: (context, constraints) {
                 if (constraints.maxWidth < 600) {
                   return Column(children: [
-                    TextFormField(controller: _invoiceNumberController, decoration: const InputDecoration(labelText: 'Invoice Number')),
+                    TextFormField(controller: _invoiceNumberController, decoration: InputDecoration(labelText: AppLocalizations.of(context)!.invoiceNumber)),
                     const SizedBox(height: 16),
-                    TextFormField(controller: _issueDateController, decoration: const InputDecoration(labelText: 'Issue Date', suffixIcon: Icon(LucideIcons.calendar)), readOnly: true, onTap: () => _selectDate(context, true)),
+                    TextFormField(controller: _issueDateController, decoration: InputDecoration(labelText: AppLocalizations.of(context)!.date, suffixIcon: const Icon(LucideIcons.calendar)), readOnly: true, onTap: () => _selectDate(context, true)),
                     const SizedBox(height: 16),
-                    TextFormField(controller: _dueDateController, decoration: const InputDecoration(labelText: 'Due Date', suffixIcon: Icon(LucideIcons.calendar)), readOnly: true, onTap: () => _selectDate(context, false)),
+                    TextFormField(controller: _dueDateController, decoration: InputDecoration(labelText: AppLocalizations.of(context)!.dueDate, suffixIcon: const Icon(LucideIcons.calendar)), readOnly: true, onTap: () => _selectDate(context, false)),
                   ]);
                 }
                 return Row(
                   children: [
-                    Expanded(child: TextFormField(controller: _invoiceNumberController, decoration: const InputDecoration(labelText: 'Invoice Number'))),
+                    Expanded(child: TextFormField(controller: _invoiceNumberController, decoration: InputDecoration(labelText: AppLocalizations.of(context)!.invoiceNumber))),
                     const SizedBox(width: 16),
-                    Expanded(child: TextFormField(controller: _issueDateController, decoration: const InputDecoration(labelText: 'Issue Date', suffixIcon: Icon(LucideIcons.calendar)), readOnly: true, onTap: () => _selectDate(context, true))),
+                    Expanded(child: TextFormField(controller: _issueDateController, decoration: InputDecoration(labelText: AppLocalizations.of(context)!.date, suffixIcon: const Icon(LucideIcons.calendar)), readOnly: true, onTap: () => _selectDate(context, true))),
                     const SizedBox(width: 16),
-                    Expanded(child: TextFormField(controller: _dueDateController, decoration: const InputDecoration(labelText: 'Due Date', suffixIcon: Icon(LucideIcons.calendar)), readOnly: true, onTap: () => _selectDate(context, false))),
+                    Expanded(child: TextFormField(controller: _dueDateController, decoration: InputDecoration(labelText: AppLocalizations.of(context)!.dueDate, suffixIcon: const Icon(LucideIcons.calendar)), readOnly: true, onTap: () => _selectDate(context, false))),
                   ],
                 );
               }
@@ -377,10 +378,10 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
           children: [
             Row(
               children: [
-                const Expanded(flex: 4, child: Text('Description', style: TextStyle(fontWeight: FontWeight.bold))),
-                const Expanded(flex: 1, child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
-                const Expanded(flex: 2, child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
-                const Expanded(flex: 2, child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                Expanded(flex: 4, child: Text(AppLocalizations.of(context)!.description, style: const TextStyle(fontWeight: FontWeight.bold))),
+                Expanded(flex: 1, child: Text(AppLocalizations.of(context)!.quantity, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
+                Expanded(flex: 2, child: Text(AppLocalizations.of(context)!.price, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                Expanded(flex: 2, child: Text(AppLocalizations.of(context)!.total, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
                 const SizedBox(width: 48),
               ],
             ),
@@ -397,7 +398,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
             OutlinedButton.icon(
               onPressed: _addLineItem,
               icon: const Icon(LucideIcons.plus, size: 16),
-              label: const Text('Add Line Item'),
+              label: Text(AppLocalizations.of(context)!.addItem),
               style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(40)),
             ),
           ],
@@ -419,8 +420,8 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
         children: [
           Expanded(flex: 4, child: TextFormField(
             controller: controllers.descriptionController,
-            decoration: const InputDecoration(isDense: true, hintText: 'Item description'),
-            validator: (v) => v!.isEmpty ? 'Required' : null,
+            decoration: InputDecoration(isDense: true, hintText: AppLocalizations.of(context)!.description),
+            validator: (v) => v!.isEmpty ? AppLocalizations.of(context)!.required : null,
           )),
           const SizedBox(width: 8),
           Expanded(flex: 1, child: TextFormField(
@@ -494,12 +495,12 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Notes & Terms', style: Theme.of(context).textTheme.titleLarge),
+            Text(AppLocalizations.of(context)!.notes, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 12),
             TextFormField(
               controller: _notesController,
               maxLines: 4,
-              decoration: const InputDecoration(hintText: 'Payment terms, additional notes...'),
+              decoration: InputDecoration(hintText: AppLocalizations.of(context)!.notes),
             ),
           ],
         ),
@@ -516,10 +517,10 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
           children: [
             Text('Summary', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
-            _buildSummaryRow('Subtotal:', subtotal),
-            _buildSummaryRow('Tax (10%):', tax),
+            _buildSummaryRow('${AppLocalizations.of(context)!.subtotal}:', subtotal),
+            _buildSummaryRow('${AppLocalizations.of(context)!.tax} (10%):', tax),
             const Divider(height: 24),
-            _buildSummaryRow('Total Amount Due:', total, isTotal: true),
+            _buildSummaryRow('${AppLocalizations.of(context)!.total}:', total, isTotal: true),
           ],
         ),
       ),

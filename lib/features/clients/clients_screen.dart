@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:intl/intl.dart';
 
@@ -67,18 +68,18 @@ class _ClientsScreenState extends State<ClientsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete Client'),
-          content: Text('Are you sure you want to delete "${client.name}"? This action cannot be undone.'),
+          title: Text(AppLocalizations.of(context)!.deleteClient),
+          content: Text('${AppLocalizations.of(context)!.confirmDeleteClient} "${client.name}"? ${AppLocalizations.of(context)!.deleteConfirmation}'),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
               style: TextButton.styleFrom(foregroundColor: AppColors.destructive),
-              child: const Text('Delete'),
+              child: Text(AppLocalizations.of(context)!.delete),
               onPressed: () {
                 _database.deleteClient(client.id);
                 Navigator.of(context).pop();
@@ -131,7 +132,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Clients', style: Theme.of(context).textTheme.headlineMedium),
+            Text(AppLocalizations.of(context)!.clients, style: Theme.of(context).textTheme.headlineMedium),
             Text(
               'Manage your client relationships and outstanding balances.',
               style: Theme.of(context).textTheme.bodyMedium,
@@ -141,7 +142,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
         ElevatedButton.icon(
           onPressed: _showAddClientDialog,
           icon: const Icon(LucideIcons.plus, size: 16),
-          label: const Text('Add New Client'),
+          label: Text(AppLocalizations.of(context)!.addNewClient),
         )
       ],
     );
@@ -168,9 +169,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
           physics: const NeverScrollableScrollPhysics(),
           childAspectRatio: childAspectRatio,
           children: [
-            ClientSummaryCard(icon: LucideIcons.users, title: 'Total Clients', value: clients.length.toString(), color: AppColors.primary),
-            ClientSummaryCard(icon: LucideIcons.creditCard, title: 'Total Receivables', value: currencyFormat.format(totalReceivables), color: AppColors.success),
-            ClientSummaryCard(icon: LucideIcons.banknote, title: 'Total Payables', value: currencyFormat.format(totalPayables), color: AppColors.warning),
+            ClientSummaryCard(icon: LucideIcons.users, title: AppLocalizations.of(context)!.clients, value: clients.length.toString(), color: AppColors.primary),
+            ClientSummaryCard(icon: LucideIcons.creditCard, title: AppLocalizations.of(context)!.totalReceivables, value: currencyFormat.format(totalReceivables), color: AppColors.success),
+            ClientSummaryCard(icon: LucideIcons.banknote, title: AppLocalizations.of(context)!.totalPayables, value: currencyFormat.format(totalPayables), color: AppColors.warning),
             ClientSummaryCard(icon: LucideIcons.users, title: 'Client Breakdown', value: '$debtors  /  $creditors', subtitle: 'Debtors / Creditors', color: AppColors.info),
           ],
         );
@@ -188,7 +189,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
               child: TextField(
                 onChanged: (value) => setState(() => _searchTerm = value),
                 decoration: const InputDecoration(
-                  hintText: 'Search clients by name or email...',
+                  hintText: AppLocalizations.of(context)!.searchClients,
                   prefixIcon: Icon(LucideIcons.search, size: 16),
                   isDense: true,
                 ),
@@ -224,18 +225,18 @@ class _ClientsScreenState extends State<ClientsScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Text('Client List', style: Theme.of(context).textTheme.titleLarge),
+            child: Text(AppLocalizations.of(context)!.clients, style: Theme.of(context).textTheme.titleLarge),
           ),
           const Divider(height: 1),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
               columns: const [
-                DataColumn(label: Text('Client Name')),
+                DataColumn(label: Text(AppLocalizations.of(context)!.clientName)),
                 DataColumn(label: Text('Type')),
                 DataColumn(label: Text('Outstanding Balance')),
-                DataColumn(label: Text('Email Or Phone')),
-                DataColumn(label: Text('Actions')),
+                DataColumn(label: Text('${AppLocalizations.of(context)!.email} / ${AppLocalizations.of(context)!.phone}')),
+                DataColumn(label: Text(AppLocalizations.of(context)!.actions)),
               ],
               rows: clients.map((client) => _buildDataRow(client)).toList(),
             ),
@@ -243,7 +244,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
            if (clients.isEmpty)
             const Padding(
               padding: EdgeInsets.all(32.0),
-              child: Center(child: Text('No clients found.')),
+              child: Center(child: Text(AppLocalizations.of(context)!.noClients)),
             )
         ],
       ),
@@ -283,8 +284,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
           }
         },
         itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-          const PopupMenuItem<String>(value: 'edit', child: Text('Edit')),
-          const PopupMenuItem<String>(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.destructive))),
+          PopupMenuItem<String>(value: 'edit', child: Text(AppLocalizations.of(context)!.edit)),
+          PopupMenuItem<String>(value: 'delete', child: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: AppColors.destructive))),
         ],
         icon: const Icon(LucideIcons.ellipsisVertical, size: 16),
       )),

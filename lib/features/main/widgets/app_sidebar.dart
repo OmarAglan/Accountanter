@@ -1,5 +1,6 @@
 // lib/features/main/widgets/app_sidebar.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:accountanter/theme/app_colors.dart';
 import '../main_screen.dart'; // Import the AppPage enum
@@ -32,11 +33,11 @@ class AppSidebar extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
-                _buildNavItem(context, AppPage.dashboard, LucideIcons.layoutDashboard, 'Dashboard'),
-                _buildNavItem(context, AppPage.clients, LucideIcons.users, 'Clients'),
-                _buildNavItem(context, AppPage.invoices, LucideIcons.fileText, 'Invoices'),
-                _buildNavItem(context, AppPage.inventory, LucideIcons.package, 'Inventory'),
-                _buildNavItem(context, AppPage.expenses, LucideIcons.receipt, 'Expenses'), // <-- ADD THIS LINE
+                _buildNavItem(context, AppPage.dashboard, LucideIcons.layoutDashboard, AppLocalizations.of(context)!.dashboard),
+                _buildNavItem(context, AppPage.clients, LucideIcons.users, AppLocalizations.of(context)!.clients),
+                _buildNavItem(context, AppPage.invoices, LucideIcons.fileText, AppLocalizations.of(context)!.invoices),
+                _buildNavItem(context, AppPage.inventory, LucideIcons.package, AppLocalizations.of(context)!.inventory),
+                _buildNavItem(context, AppPage.expenses, LucideIcons.receipt, AppLocalizations.of(context)!.expenses),
               ],
             ),
           ),
@@ -68,7 +69,7 @@ class AppSidebar extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Accountanter',
+                  AppLocalizations.of(context)!.appTitle,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: AppColors.sidebarForeground,
                         fontWeight: FontWeight.w600,
@@ -113,19 +114,19 @@ class AppSidebar extends StatelessWidget {
     // This is a placeholder for Settings and Help. They won't change the page for now.
     _onSettingsTapped() {
       // TODO: Navigate to settings page
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settings page not implemented yet.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.settingsNotImplemented)));
     }
      _onHelpTapped() {
       // TODO: Navigate to help page
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Help page not implemented yet.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.helpNotImplemented)));
     }
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-           _buildFooterItem(context, LucideIcons.settings, 'Settings', _onSettingsTapped),
-           _buildFooterItem(context, LucideIcons.circleQuestionMark, 'Help', _onHelpTapped),
+           _buildFooterItem(context, LucideIcons.settings, AppLocalizations.of(context)!.settings, _onSettingsTapped),
+           _buildFooterItem(context, LucideIcons.circleQuestionMark, AppLocalizations.of(context)!.help, _onHelpTapped),
            _buildLogoutButton(context),
         ],
       ),
@@ -172,7 +173,7 @@ class AppSidebar extends StatelessWidget {
             const Icon(LucideIcons.logOut, size: 20),
             if (isExpanded) ...[
               const SizedBox(width: 12),
-              const Text('Logout'),
+              Text(AppLocalizations.of(context)!.logout),
             ]
           ],
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:accountanter/data/database.dart';
@@ -39,10 +40,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return Center(child: Text('Error loading dashboard: ${snapshot.error}'));
+          return Center(child: Text(AppLocalizations.of(context)!.errorLoadingDashboard(snapshot.error.toString())));
         }
         if (!snapshot.hasData) {
-          return const Center(child: Text('No data available.'));
+          return Center(child: Text(AppLocalizations.of(context)!.noDataAvailable));
         }
 
         final data = snapshot.data!;
@@ -50,11 +51,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Quick Actions', style: Theme.of(context).textTheme.headlineSmall),
+            Text(AppLocalizations.of(context)!.quickActions, style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 16),
             const QuickActions(),
             const SizedBox(height: 32),
-            Text('Overview', style: Theme.of(context).textTheme.headlineSmall),
+            Text(AppLocalizations.of(context)!.overview, style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 16),
             _buildKpiGrid(data),
             const SizedBox(height: 32),
@@ -85,25 +86,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
           childAspectRatio: (crossAxisCount == 1) ? 3.0 : 2.0,
           children: [
             KpiCard(
-              title: 'Total Receivables',
+              title: AppLocalizations.of(context)!.totalReceivables,
               value: currencyFormat.format(data.totalReceivables),
               icon: LucideIcons.dollarSign,
               borderColor: AppColors.success,
             ),
             KpiCard(
-              title: 'Total Payables',
+              title: AppLocalizations.of(context)!.totalPayables,
               value: currencyFormat.format(data.totalPayables),
               icon: LucideIcons.trendingUp,
               borderColor: AppColors.warning,
             ),
             KpiCard(
-              title: 'Overdue Invoices',
+              title: AppLocalizations.of(context)!.overdueInvoices,
               value: data.overdueInvoicesCount.toString(),
               icon: LucideIcons.triangleAlert,
               borderColor: AppColors.destructive,
             ),
             KpiCard(
-              title: 'Active Clients',
+              title: AppLocalizations.of(context)!.activeClients,
               value: data.activeClients.toString(),
               icon: LucideIcons.users,
               borderColor: AppColors.primary,
@@ -158,18 +159,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   const Icon(LucideIcons.trendingUp, color: AppColors.success, size: 20),
                   const SizedBox(width: 8),
-                  Text('Cash Flow This Month', style: textTheme.titleLarge),
+                  Text(AppLocalizations.of(context)!.cashFlowThisMonth, style: textTheme.titleLarge),
                 ],
               ),
               const SizedBox(height: 24),
-              _buildCashFlowItem(context, 'Money In', currencyFormat.format(data.moneyInThisMonth), AppColors.success, true),
+              _buildCashFlowItem(context, AppLocalizations.of(context)!.moneyIn, currencyFormat.format(data.moneyInThisMonth), AppColors.success, true),
               const SizedBox(height: 16),
-              _buildCashFlowItem(context, 'Money Out', currencyFormat.format(data.moneyOutThisMonth), AppColors.destructive, false),
+              _buildCashFlowItem(context, AppLocalizations.of(context)!.moneyOut, currencyFormat.format(data.moneyOutThisMonth), AppColors.destructive, false),
               const Divider(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Net Cash Flow:', style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500)),
+                  Text(AppLocalizations.of(context)!.netCashFlow, style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500)),
                   Text(
                     '${netFlow >= 0 ? '+' : ''}${currencyFormat.format(netFlow)}', 
                     style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, color: netFlow >= 0 ? AppColors.success : AppColors.destructive, fontFamily: 'monospace')
@@ -223,29 +224,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   const Icon(LucideIcons.triangleAlert, color: AppColors.warning, size: 20),
                   const SizedBox(width: 8),
-                  Text('Action Required', style: textTheme.titleLarge),
+                  Text(AppLocalizations.of(context)!.actionRequired, style: textTheme.titleLarge),
                 ],
               ),
               const SizedBox(height: 24),
               ActionItemCard(
                 icon: LucideIcons.circleX,
                 color: AppColors.destructive,
-                title: '${data.overdueInvoicesCount} Overdue Invoices',
-                subtitle: 'Follow up required',
+                title: AppLocalizations.of(context)!.overdueInvoicesCount(data.overdueInvoicesCount),
+                subtitle: AppLocalizations.of(context)!.followUpRequired,
               ),
               const SizedBox(height: 16),
               ActionItemCard(
                 icon: LucideIcons.triangleAlert,
                 color: AppColors.warning,
-                title: '${data.invoicesDueSoonCount} Invoices Due Soon',
-                subtitle: 'Due within 7 days',
+                title: AppLocalizations.of(context)!.invoicesDueSoon(data.invoicesDueSoonCount),
+                subtitle: AppLocalizations.of(context)!.dueWithinDays,
               ),
               const SizedBox(height: 16),
               ActionItemCard(
                 icon: LucideIcons.fileText,
                 color: AppColors.accent,
-                title: '${data.draftInvoicesCount} Draft Invoices',
-                subtitle: 'Ready to be sent to clients',
+                title: AppLocalizations.of(context)!.draftInvoices(data.draftInvoicesCount),
+                subtitle: AppLocalizations.of(context)!.readyToBeSent,
               ),
             ],
           ),
@@ -283,12 +284,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Icon(LucideIcons.clock, size: 20, color: AppColors.accent),
                 const SizedBox(width: 8),
-                Text('Recent Activity', style: Theme.of(context).textTheme.titleLarge),
+                Text(AppLocalizations.of(context)!.recentActivity, style: Theme.of(context).textTheme.titleLarge),
               ],
             ),
             const SizedBox(height: 24),
             if (data.recentActivities.isEmpty)
-              const Center(child: Text('No recent activity.'))
+              Center(child: Text(AppLocalizations.of(context)!.noRecentActivity))
             else
               ListView.separated(
                 itemCount: data.recentActivities.length,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:accountanter/theme/app_colors.dart';
 
@@ -7,11 +8,12 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
 
   const AppHeader({super.key, required this.userName});
 
-  String getGreeting() {
+  String getGreeting(BuildContext context) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
+    final l10n = AppLocalizations.of(context)!;
+    if (hour < 12) return l10n.goodMorning;
+    if (hour < 18) return l10n.goodAfternoon;
+    return l10n.goodEvening;
   }
 
   @override
@@ -34,11 +36,11 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${getGreeting()}, $userName',
+                '${getGreeting(context)}, $userName',
                 style: textTheme.headlineSmall?.copyWith(fontSize: 20),
               ),
               Text(
-                "Here's what's happening with your business today",
+                AppLocalizations.of(context)!.dashboardSubtitle,
                 style: textTheme.bodyMedium,
               ),
             ],
@@ -52,7 +54,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                 width: 320,
                 child: TextField(
                   decoration: InputDecoration(
-                    hintText: 'Search clients, invoices...',
+                    hintText: AppLocalizations.of(context)!.searchPlaceholder,
                     prefixIcon: const Icon(LucideIcons.search, size: 16),
                     contentPadding: EdgeInsets.zero,
                     fillColor: AppColors.background,
@@ -95,7 +97,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('$userName Doe', style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500)),
-                      Text('Owner', style: textTheme.bodyMedium),
+                      Text(AppLocalizations.of(context)!.owner, style: textTheme.bodyMedium),
                     ],
                   )
                 ],

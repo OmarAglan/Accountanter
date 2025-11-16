@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:intl/intl.dart';
 
@@ -127,16 +128,16 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete Expense'),
-          content: Text('Are you sure you want to delete "${expense.description}"? This action cannot be undone.'),
+          title: Text(AppLocalizations.of(context)!.deleteExpense),
+          content: Text('${AppLocalizations.of(context)!.confirmDeleteExpense} "${expense.description}"? ${AppLocalizations.of(context)!.deleteConfirmation}'),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
               style: TextButton.styleFrom(foregroundColor: AppColors.destructive),
-              child: const Text('Delete'),
+              child: Text(AppLocalizations.of(context)!.delete),
               onPressed: () {
                 _database.deleteExpense(expense.id);
                 Navigator.of(context).pop();
@@ -188,7 +189,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Expense Management', style: Theme.of(context).textTheme.headlineMedium),
+            Text(AppLocalizations.of(context)!.expenses, style: Theme.of(context).textTheme.headlineMedium),
             Text(
               'Track and manage your business expenses efficiently.',
               style: Theme.of(context).textTheme.bodyMedium,
@@ -198,7 +199,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         ElevatedButton.icon(
           onPressed: _showAddExpenseDialog,
           icon: const Icon(LucideIcons.plus, size: 16),
-          label: const Text('Add Expense'),
+          label: Text(AppLocalizations.of(context)!.addExpense),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.accent,
             foregroundColor: AppColors.accentForeground,
@@ -229,10 +230,10 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           physics: const NeverScrollableScrollPhysics(),
           childAspectRatio: childAspectRatio,
           children: [
-            ExpenseSummaryCard(icon: LucideIcons.dollarSign, title: 'Total Expenses', value: currencyFormat.format(totalExpenses), color: AppColors.primary, subtitle: 'This month'),
-            ExpenseSummaryCard(icon: LucideIcons.clock, title: 'Pending Approval', value: currencyFormat.format(pendingExpenses), color: AppColors.warning, subtitle: '${expenses.where((e) => e.status == 'pending').length} expenses'),
-            ExpenseSummaryCard(icon: LucideIcons.circleCheck, title: 'Approved', value: currencyFormat.format(approvedExpenses), color: AppColors.success, subtitle: '${expenses.where((e) => e.status == 'approved').length} expenses'),
-            ExpenseSummaryCard(icon: LucideIcons.chartBar, title: 'Average Expense', value: currencyFormat.format(avgExpense), color: AppColors.info, subtitle: 'Per expense'),
+            ExpenseSummaryCard(icon: LucideIcons.dollarSign, title: AppLocalizations.of(context)!.totalExpenses, value: currencyFormat.format(totalExpenses), color: AppColors.primary, subtitle: AppLocalizations.of(context)!.thisMonth),
+            ExpenseSummaryCard(icon: LucideIcons.clock, title: AppLocalizations.of(context)!.pendingPayments, value: currencyFormat.format(pendingExpenses), color: AppColors.warning, subtitle: '${expenses.where((e) => e.status == 'pending').length} ${AppLocalizations.of(context)!.expenses}'),
+            ExpenseSummaryCard(icon: LucideIcons.circleCheck, title: 'Approved', value: currencyFormat.format(approvedExpenses), color: AppColors.success, subtitle: '${expenses.where((e) => e.status == 'approved').length} ${AppLocalizations.of(context)!.expenses}'),
+            ExpenseSummaryCard(icon: LucideIcons.chartBar, title: 'Average', value: currencyFormat.format(avgExpense), color: AppColors.info, subtitle: 'Per expense'),
           ],
         );
       }
@@ -250,7 +251,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
               child: TextField(
                 onChanged: (value) => setState(() => _searchTerm = value),
                 decoration: const InputDecoration(
-                  hintText: 'Search expenses...',
+                  hintText: AppLocalizations.of(context)!.searchExpenses,
                   prefixIcon: Icon(LucideIcons.search, size: 16),
                   isDense: true,
                 ),
@@ -261,7 +262,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
               flex: 1,
               child: DropdownButtonFormField<String>(
                 value: _filterCategory,
-                decoration: const InputDecoration(isDense: true, labelText: 'Category'),
+                decoration: InputDecoration(isDense: true, labelText: AppLocalizations.of(context)!.category),
                 items: _expenseCategories.map((type) => DropdownMenuItem(value: type, child: Text(type))).toList(),
                 onChanged: (value) => setState(() => _filterCategory = value!),
               ),
@@ -271,7 +272,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
               flex: 1,
               child: DropdownButtonFormField<String>(
                 value: _filterStatus,
-                decoration: const InputDecoration(isDense: true, labelText: 'Status'),
+                decoration: InputDecoration(isDense: true, labelText: AppLocalizations.of(context)!.status),
                 items: _expenseStatuses.map((type) => DropdownMenuItem(value: type, child: Text(type))).toList(),
                 onChanged: (value) => setState(() => _filterStatus = value!),
               ),
@@ -291,19 +292,19 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Text('Expense List', style: textTheme.titleLarge),
+            child: Text(AppLocalizations.of(context)!.expenses, style: textTheme.titleLarge),
           ),
           const Divider(height: 1),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
               columns: const [
-                DataColumn(label: Text('Date')),
-                DataColumn(label: Text('Description')),
-                DataColumn(label: Text('Category')),
-                DataColumn(label: Text('Amount')),
-                DataColumn(label: Text('Status')),
-                DataColumn(label: Text('Actions')),
+                DataColumn(label: Text(AppLocalizations.of(context)!.date)),
+                DataColumn(label: Text(AppLocalizations.of(context)!.description)),
+                DataColumn(label: Text(AppLocalizations.of(context)!.category)),
+                DataColumn(label: Text(AppLocalizations.of(context)!.amount)),
+                DataColumn(label: Text(AppLocalizations.of(context)!.status)),
+                DataColumn(label: Text(AppLocalizations.of(context)!.actions)),
               ],
               rows: expenses.map((details) => _buildDataRow(details)).toList(),
             ),
@@ -311,7 +312,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           if (expenses.isEmpty)
             const Padding(
               padding: EdgeInsets.all(32.0),
-              child: Center(child: Text('No expenses found.')),
+              child: Center(child: Text(AppLocalizations.of(context)!.noExpenses)),
             )
         ],
       ),
@@ -354,8 +355,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           }
         },
         itemBuilder: (context) => <PopupMenuEntry<String>>[
-          const PopupMenuItem<String>(value: 'edit', child: Text('Edit')),
-          const PopupMenuItem<String>(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.destructive))),
+          PopupMenuItem<String>(value: 'edit', child: Text(AppLocalizations.of(context)!.edit)),
+          PopupMenuItem<String>(value: 'delete', child: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: AppColors.destructive))),
         ],
         icon: const Icon(LucideIcons.ellipsisVertical, size: 16),
       )),

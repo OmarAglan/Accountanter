@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:accountanter/data/database.dart';
@@ -101,7 +102,7 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(_isEditing ? 'Edit Item' : 'Add New Item'),
+      title: Text(_isEditing ? AppLocalizations.of(context)!.editInventoryItem : AppLocalizations.of(context)!.addInventoryItem),
       content: _isLoading 
         ? const Center(child: CircularProgressIndicator())
         : Form(
@@ -112,16 +113,16 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildTextField(_nameController, 'Product Name *', isRequired: true),
+                    _buildTextField(_nameController, '${AppLocalizations.of(context)!.itemName} *', isRequired: true),
                     const SizedBox(height: 16),
-                    _buildTextField(_skuController, 'SKU'),
+                    _buildTextField(_skuController, AppLocalizations.of(context)!.sku),
                     const SizedBox(height: 16),
                     // CATEGORY DROPDOWN
                     _buildCategoryDropdown(),
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        Expanded(child: _buildIntField(_quantityController, 'Quantity *', isRequired: true)),
+                        Expanded(child: _buildIntField(_quantityController, '${AppLocalizations.of(context)!.quantity} *', isRequired: true)),
                         const SizedBox(width: 16),
                         Expanded(child: _buildIntField(_minStockController, 'Min. Stock')),
                       ],
@@ -139,11 +140,11 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         ElevatedButton(
           onPressed: _handleSave,
-          child: Text(_isEditing ? 'Update Item' : 'Save Item'),
+          child: Text(_isEditing ? AppLocalizations.of(context)!.update : AppLocalizations.of(context)!.save),
         ),
       ],
     );
@@ -153,15 +154,15 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(labelText: label),
-      validator: (v) => (isRequired && v!.isEmpty) ? '$label is required' : null,
+      validator: (v) => (isRequired && v!.isEmpty) ? AppLocalizations.of(context)!.fieldRequired : null,
     );
   }
   
   Widget _buildCategoryDropdown() {
     return DropdownButtonFormField<Category>(
       value: _selectedCategory,
-      decoration: const InputDecoration(labelText: 'Category *'),
-      hint: const Text('Select a category'),
+      decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.category} *'),
+      hint: Text(AppLocalizations.of(context)!.pleaseSelect),
       items: _categories.map((Category category) {
         return DropdownMenuItem<Category>(
           value: category,
@@ -173,15 +174,15 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
           _selectedCategory = newValue;
         });
       },
-      validator: (value) => value == null ? 'Please select a category' : null,
+      validator: (value) => value == null ? AppLocalizations.of(context)!.fieldRequired : null,
     );
   }
   
   Widget _buildSupplierDropdown() {
     return DropdownButtonFormField<Supplier>(
       value: _selectedSupplier,
-      decoration: const InputDecoration(labelText: 'Supplier'),
-      hint: const Text('Select a supplier (optional)'),
+      decoration: InputDecoration(labelText: 'Supplier'),
+      hint: Text('${AppLocalizations.of(context)!.pleaseSelect} (${AppLocalizations.of(context)!.optional})'),
       items: _suppliers.map((Supplier supplier) {
         return DropdownMenuItem<Supplier>(
           value: supplier,
@@ -204,8 +205,8 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       validator: (v) {
-        if (isRequired && v!.isEmpty) return '$label is required';
-        if (v != null && v.isNotEmpty && int.tryParse(v) == null) return 'Enter a valid number';
+        if (isRequired && v!.isEmpty) return AppLocalizations.of(context)!.fieldRequired;
+        if (v != null && v.isNotEmpty && int.tryParse(v) == null) return AppLocalizations.of(context)!.fieldRequired;
         return null;
       },
     );
@@ -214,12 +215,12 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
   Widget _buildPriceField() {
     return TextFormField(
       controller: _unitPriceController,
-      decoration: const InputDecoration(labelText: 'Unit Price *', prefixText: '\$'),
+      decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.unitPrice} *', prefixText: '\$'),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
       validator: (v) {
-        if (v == null || v.isEmpty) return 'Price is required';
-        if (double.tryParse(v) == null) return 'Enter a valid price';
+        if (v == null || v.isEmpty) return AppLocalizations.of(context)!.fieldRequired;
+        if (double.tryParse(v) == null) return AppLocalizations.of(context)!.fieldRequired;
         return null;
       },
     );

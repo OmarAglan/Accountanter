@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:intl/intl.dart';
@@ -38,15 +39,25 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
   
   bool get _isEditing => widget.expense != null;
   
-  final List<String> _paymentMethods = [
-    "Cash", "Company Credit Card", "Personal Credit Card", 
-    "Bank Transfer", "Check", "Purchase Order",
-  ];
+  late List<String> _paymentMethods;
 
   @override
   void initState() {
     super.initState();
     _loadInitialData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final l10n = AppLocalizations.of(context)!;
+    _paymentMethods = [
+      l10n.cash,
+      l10n.creditCard,
+      l10n.bankTransfer,
+      "Check",
+      "Purchase Order",
+    ];
   }
   
   Future<void> _loadInitialData() async {
@@ -130,7 +141,7 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(_isEditing ? 'Edit Expense' : 'Add New Expense'),
+      title: Text(_isEditing ? AppLocalizations.of(context)!.editExpense : AppLocalizations.of(context)!.addExpense),
       content: _isLoading
         ? const Center(child: CircularProgressIndicator())
         : Form(
@@ -141,7 +152,7 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildTextField(_descriptionController, 'Description *', isRequired: true),
+                  _buildTextField(_descriptionController, '${AppLocalizations.of(context)!.description} *', isRequired: true),
                   const SizedBox(height: 16),
                   _buildAmountField(),
                   const SizedBox(height: 16),
@@ -149,7 +160,7 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
                   const SizedBox(height: 16),
                   _buildVendorDropdown(),
                   const SizedBox(height: 16),
-                  _buildDropdown(_paymentMethods, 'Payment Method *', _selectedPaymentMethod, (val) => setState(() => _selectedPaymentMethod = val)),
+                  _buildDropdown(_paymentMethods, '${AppLocalizations.of(context)!.paymentMethod} *', _selectedPaymentMethod, (val) => setState(() => _selectedPaymentMethod = val)),
                   const SizedBox(height: 16),
                   _buildDateField(),
                   const SizedBox(height: 16),
@@ -164,11 +175,11 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         ElevatedButton(
           onPressed: _handleSave,
-          child: Text(_isEditing ? 'Update Expense' : 'Save Expense'),
+          child: Text(_isEditing ? AppLocalizations.of(context)!.update : AppLocalizations.of(context)!.save),
         ),
       ],
     );
@@ -178,21 +189,21 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(labelText: label),
-      validator: (v) => (isRequired && v!.isEmpty) ? '$label is required' : null,
+      validator: (v) => (isRequired && v!.isEmpty) ? AppLocalizations.of(context)!.fieldRequired : null,
     );
   }
 
   Widget _buildAmountField() {
     return TextFormField(
       controller: _amountController,
-      decoration: const InputDecoration(labelText: 'Amount *', prefixText: '\$'),
+      decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.amount} *', prefixText: '\$'),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
       ],
       validator: (v) {
-        if (v == null || v.isEmpty) return 'Amount is required';
-        if (double.tryParse(v) == null) return 'Enter a valid number';
+        if (v == null || v.isEmpty) return AppLocalizations.of(context)!.fieldRequired;
+        if (double.tryParse(v) == null) return AppLocalizations.of(context)!.fieldRequired;
         return null;
       },
     );
@@ -201,8 +212,8 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
   Widget _buildCategoryDropdown() {
     return DropdownButtonFormField<Category>(
       value: _selectedCategory,
-      decoration: const InputDecoration(labelText: 'Category *'),
-      hint: const Text('Select a category'),
+      decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.category} *'),
+      hint: Text(AppLocalizations.of(context)!.pleaseSelect),
       items: _categories.map((Category category) {
         return DropdownMenuItem<Category>(
           value: category,
@@ -214,15 +225,15 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
           _selectedCategory = newValue;
         });
       },
-      validator: (value) => value == null ? 'Please select a category' : null,
+      validator: (value) => value == null ? AppLocalizations.of(context)!.fieldRequired : null,
     );
   }
   
   Widget _buildVendorDropdown() {
     return DropdownButtonFormField<Vendor>(
       value: _selectedVendor,
-      decoration: const InputDecoration(labelText: 'Vendor'),
-      hint: const Text('Select a vendor (optional)'),
+      decoration: InputDecoration(labelText: AppLocalizations.of(context)!.vendor),
+      hint: Text('${AppLocalizations.of(context)!.pleaseSelect} (${AppLocalizations.of(context)!.optional})'),
       items: _vendors.map((Vendor vendor) {
         return DropdownMenuItem<Vendor>(
           value: vendor,
@@ -243,17 +254,17 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
       decoration: InputDecoration(labelText: label),
       items: items.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
       onChanged: onChanged,
-      validator: (v) => v == null ? '$label is required' : null,
+      validator: (v) => v == null ? AppLocalizations.of(context)!.fieldRequired : null,
     );
   }
   
   Widget _buildDateField() {
     return TextFormField(
       controller: _dateController,
-      decoration: const InputDecoration(labelText: 'Date *', suffixIcon: Icon(Icons.calendar_today)),
+      decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.date} *', suffixIcon: const Icon(Icons.calendar_today)),
       readOnly: true,
       onTap: () => _selectDate(context),
-      validator: (v) => v!.isEmpty ? 'Date is required' : null,
+      validator: (v) => v!.isEmpty ? AppLocalizations.of(context)!.fieldRequired : null,
     );
   }
 }

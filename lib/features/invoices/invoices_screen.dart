@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:accountanter/data/database.dart';
@@ -18,13 +19,21 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
   late Stream<List<InvoiceWithClient>> _invoicesStream;
   String _searchTerm = '';
   late TabController _tabController;
-  final List<String> _tabs = ['All', 'Paid', 'Pending', 'Overdue', 'Draft'];
+  late List<String> _tabs;
 
   @override
   void initState() {
     super.initState();
+    _tabs = ['All', 'Paid', 'Pending', 'Overdue', 'Draft'];
     _tabController = TabController(length: _tabs.length, vsync: this);
     _invoicesStream = _database.watchAllInvoicesWithClient();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final l10n = AppLocalizations.of(context)!;
+    _tabs = [l10n.all, l10n.paid, l10n.pending, l10n.overdue, l10n.draft];
   }
 
   @override
@@ -44,21 +53,21 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete Invoice'),
-          content: Text('Are you sure you want to delete invoice "${invoice.invoiceNumber}"? This action cannot be undone.'),
+          title: Text(AppLocalizations.of(context)!.deleteInvoice),
+          content: Text('${AppLocalizations.of(context)!.confirmDeleteInvoice} "${invoice.invoiceNumber}"? ${AppLocalizations.of(context)!.deleteConfirmation}'),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
               style: TextButton.styleFrom(foregroundColor: AppColors.destructive),
-              child: const Text('Delete'),
+              child: Text(AppLocalizations.of(context)!.delete),
               onPressed: () {
                 _database.deleteInvoice(invoice.id);
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Invoice ${invoice.invoiceNumber} deleted.'))
+                  SnackBar(content: Text('${AppLocalizations.of(context)!.invoices} ${invoice.invoiceNumber} deleted.'))
                 );
               },
             ),
@@ -108,14 +117,14 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Invoices', style: Theme.of(context).textTheme.headlineMedium),
+            Text(AppLocalizations.of(context)!.invoices, style: Theme.of(context).textTheme.headlineMedium),
             Text('Create, manage, and track your invoices.', style: Theme.of(context).textTheme.bodyMedium),
           ],
         ),
         ElevatedButton.icon(
           onPressed: _navigateToInvoiceEditor,
           icon: const Icon(LucideIcons.plus, size: 16),
-          label: const Text('New Invoice'),
+          label: Text(AppLocalizations.of(context)!.newInvoice),
         ),
       ],
     );
@@ -157,7 +166,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
         child: TextField(
           onChanged: (value) => setState(() => _searchTerm = value),
           decoration: const InputDecoration(
-            hintText: 'Search invoices by ID or client...',
+            hintText: AppLocalizations.of(context)!.searchInvoices,
             prefixIcon: Icon(LucideIcons.search, size: 16),
             isDense: true,
           ),
@@ -195,7 +204,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     if (invoices.isEmpty) {
       return const Center(child: Padding(
         padding: EdgeInsets.all(16.0),
-        child: Text('No invoices found for this filter.'),
+        child: Text(AppLocalizations.of(context)!.noInvoices),
       ));
     }
 
@@ -203,12 +212,12 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
       scrollDirection: Axis.horizontal,
       child: DataTable(
         columns: const [
-          DataColumn(label: Text('Invoice #')),
-          DataColumn(label: Text('Client')),
-          DataColumn(label: Text('Amount')),
-          DataColumn(label: Text('Status')),
-          DataColumn(label: Text('Due Date')),
-          DataColumn(label: Text('Actions')),
+          DataColumn(label: Text(AppLocalizations.of(context)!.invoiceNumber)),
+          DataColumn(label: Text(AppLocalizations.of(context)!.client)),
+          DataColumn(label: Text(AppLocalizations.of(context)!.amount)),
+          DataColumn(label: Text(AppLocalizations.of(context)!.status)),
+          DataColumn(label: Text(AppLocalizations.of(context)!.dueDate)),
+          DataColumn(label: Text(AppLocalizations.of(context)!.actions)),
         ],
         rows: invoices.map((iwc) => _buildDataRow(iwc)).toList(),
       ),
@@ -234,8 +243,8 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
           }
         },
         itemBuilder: (context) => <PopupMenuEntry<String>>[
-          const PopupMenuItem<String>(value: 'edit', child: Text('Edit')),
-          const PopupMenuItem<String>(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.destructive))),
+          PopupMenuItem<String>(value: 'edit', child: Text(AppLocalizations.of(context)!.edit)),
+          PopupMenuItem<String>(value: 'delete', child: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: AppColors.destructive))),
         ],
         icon: const Icon(LucideIcons.ellipsisVertical, size: 16),
       )),

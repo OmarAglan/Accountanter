@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:accountanter/theme/app_colors.dart';
 
@@ -14,7 +15,7 @@ class QuickActions extends StatelessWidget {
         ElevatedButton.icon(
           onPressed: () {},
           icon: const Icon(LucideIcons.fileText, size: 20),
-          label: const Text('Create New Invoice'),
+          label: Text(AppLocalizations.of(context)!.newInvoice),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.accent,
             foregroundColor: AppColors.accentForeground,
@@ -24,7 +25,7 @@ class QuickActions extends StatelessWidget {
         OutlinedButton.icon(
           onPressed: () {},
           icon: const Icon(LucideIcons.userPlus, size: 20),
-          label: const Text('Add New Client'),
+          label: Text(AppLocalizations.of(context)!.addClient),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
             side: const BorderSide(color: AppColors.primary),
@@ -34,7 +35,7 @@ class QuickActions extends StatelessWidget {
          OutlinedButton.icon(
           onPressed: () {},
           icon: const Icon(LucideIcons.package, size: 20),
-          label: const Text('Add Inventory Item'),
+          label: Text(AppLocalizations.of(context)!.addInventoryItem),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.accent,
             side: const BorderSide(color: AppColors.accent),
