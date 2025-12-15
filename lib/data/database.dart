@@ -13,7 +13,12 @@ import 'tables/invoices.dart';
 import 'tables/line_items.dart';
 import 'tables/categories.dart';
 import 'tables/suppliers.dart';
-import 'tables/vendors.dart'; // Import new table
+import 'tables/vendors.dart';
+import 'tables/payments.dart';
+import 'tables/recurring_invoices.dart';
+import 'tables/tax_rates.dart';
+import 'tables/documents.dart';
+import 'tables/settings_entries.dart';
 
 part 'database.g.dart';
 
@@ -27,7 +32,12 @@ part 'database.g.dart';
   LineItems,
   Categories,
   Suppliers,
-  Vendors, // Add new table
+  Vendors,
+  Payments,
+  RecurringInvoices,
+  TaxRates,
+  Documents,
+  SettingsEntries,
 ])
 class AppDatabase extends _$AppDatabase {
   // --- SINGLETON SETUP START ---
@@ -40,7 +50,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 8; // INCREMENT SCHEMA VERSION
+  int get schemaVersion => 9; // INCREMENT SCHEMA VERSION
 
   @override
   MigrationStrategy get migration {
@@ -89,6 +99,13 @@ class AppDatabase extends _$AppDatabase {
           // `vendors` tables, and then update the new `categoryId` and `vendorId`
           // columns with the new foreign keys.
           // Since this app is in early development, we can skip this data migration.
+        }
+        if (from < 9) {
+          await m.createTable(payments);
+          await m.createTable(recurringInvoices);
+          await m.createTable(taxRates);
+          await m.createTable(documents);
+          await m.createTable(settingsEntries);
         }
       },
     );
