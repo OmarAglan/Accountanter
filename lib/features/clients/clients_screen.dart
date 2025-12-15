@@ -242,7 +242,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
             ),
           ),
            if (clients.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(32.0),
               child: Center(child: Text(AppLocalizations.of(context)!.noClients)),
             )

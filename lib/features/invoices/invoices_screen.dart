@@ -202,7 +202,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
   
   Widget _buildDataTable(List<InvoiceWithClient> invoices) {
     if (invoices.isEmpty) {
-      return const Center(child: Padding(
+      return Center(child: Padding(
         padding: EdgeInsets.all(16.0),
         child: Text(AppLocalizations.of(context)!.noInvoices),
       ));
