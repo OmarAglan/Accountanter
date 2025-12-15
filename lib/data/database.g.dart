@@ -6528,7 +6528,6 @@ class $SettingsEntriesTable extends SettingsEntries
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
   );
   static const VerificationMeta _valueMeta = const VerificationMeta('value');
   @override

@@ -36,8 +36,14 @@ class AppSidebar extends StatelessWidget {
                 _buildNavItem(context, AppPage.dashboard, LucideIcons.layoutDashboard, AppLocalizations.of(context)!.dashboard),
                 _buildNavItem(context, AppPage.clients, LucideIcons.users, AppLocalizations.of(context)!.clients),
                 _buildNavItem(context, AppPage.invoices, LucideIcons.fileText, AppLocalizations.of(context)!.invoices),
+                _buildNavItem(context, AppPage.recurring, LucideIcons.repeat, AppLocalizations.of(context)!.recurring),
+                _buildNavItem(context, AppPage.payments, LucideIcons.creditCard, AppLocalizations.of(context)!.payments),
                 _buildNavItem(context, AppPage.inventory, LucideIcons.package, AppLocalizations.of(context)!.inventory),
                 _buildNavItem(context, AppPage.expenses, LucideIcons.receipt, AppLocalizations.of(context)!.expenses),
+                _buildNavItem(context, AppPage.taxes, LucideIcons.calculator, AppLocalizations.of(context)!.taxes),
+                _buildNavItem(context, AppPage.currency, LucideIcons.globe, AppLocalizations.of(context)!.currency),
+                _buildNavItem(context, AppPage.documents, LucideIcons.folderOpen, AppLocalizations.of(context)!.documents),
+                _buildNavItem(context, AppPage.reports, LucideIcons.barChart3, AppLocalizations.of(context)!.reports),
               ],
             ),
           ),
@@ -125,20 +131,21 @@ class AppSidebar extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-           _buildFooterItem(context, LucideIcons.settings, AppLocalizations.of(context)!.settings, _onSettingsTapped),
-           _buildFooterItem(context, LucideIcons.circleQuestionMark, AppLocalizations.of(context)!.help, _onHelpTapped),
+           _buildFooterItem(context, LucideIcons.settings, AppLocalizations.of(context)!.settings, () => onPageSelected(AppPage.settings), isActive: currentPage == AppPage.settings),
+           _buildFooterItem(context, LucideIcons.circleHelp, AppLocalizations.of(context)!.help, () => onPageSelected(AppPage.help), isActive: currentPage == AppPage.help),
            _buildLogoutButton(context),
         ],
       ),
     );
   }
 
-  Widget _buildFooterItem(BuildContext context, IconData icon, String label, VoidCallback onTap) {
+  Widget _buildFooterItem(BuildContext context, IconData icon, String label, VoidCallback onTap, {bool isActive = false}) {
      return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: TextButton(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.sidebarForeground,
+          backgroundColor: isActive ? AppColors.sidebarPrimary : Colors.transparent,
+          foregroundColor: isActive ? AppColors.sidebarPrimaryForeground : AppColors.sidebarForeground,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           alignment: Alignment.centerLeft,

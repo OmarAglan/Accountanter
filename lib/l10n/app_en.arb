@@ -8,6 +8,12 @@
     "expenses": "Expenses",
     "settings": "Settings",
     "help": "Help",
+    "recurring": "Recurring",
+    "payments": "Payments",
+    "taxes": "Taxes",
+    "currency": "Currency",
+    "documents": "Documents",
+    "reports": "Reports",
     "logout": "Logout",
     
     "settingsNotImplemented": "Settings page not implemented yet.",

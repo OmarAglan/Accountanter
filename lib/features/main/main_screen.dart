@@ -6,10 +6,18 @@ import '../dashboard/dashboard_screen.dart';
 import '../clients/clients_screen.dart';
 import '../invoices/invoices_screen.dart';
 import '../inventory/inventory_screen.dart';
-import '../expenses/expenses_screen.dart'; // 1. IMPORT the new screen
+import '../expenses/expenses_screen.dart';
+import '../payments/payments_screen.dart';
+import '../recurring/recurring_invoices_screen.dart';
+import '../taxes/tax_management_screen.dart';
+import '../documents/documents_screen.dart';
+import '../reports/reports_screen.dart';
+import '../settings/settings_screen.dart';
+import '../help/help_screen.dart';
+import '../currency/currency_screen.dart';
 
 // 2. ADD 'expenses' to the enum
-enum AppPage { dashboard, clients, invoices, inventory, expenses }
+enum AppPage { dashboard, clients, invoices, inventory, expenses, recurring, payments, taxes, currency, documents, reports, settings, help }
 
 class MainScreen extends StatefulWidget {
   final VoidCallback onLogout;
@@ -34,8 +42,24 @@ class _MainScreenState extends State<MainScreen> {
         return const InvoicesScreen();
       case AppPage.inventory:
         return const InventoryScreen();
-      case AppPage.expenses: // 3. ADD a case for the new screen
+      case AppPage.expenses:
         return const ExpensesScreen();
+      case AppPage.recurring:
+        return const RecurringInvoicesScreen();
+      case AppPage.payments:
+        return const PaymentsScreen();
+      case AppPage.taxes:
+        return const TaxManagementScreen();
+      case AppPage.currency:
+        return const CurrencyScreen();
+      case AppPage.documents:
+        return const DocumentsScreen();
+      case AppPage.reports:
+        return const ReportsScreen();
+      case AppPage.settings:
+        return const SettingsScreen();
+      case AppPage.help:
+        return const HelpScreen();
     }
   }
 
