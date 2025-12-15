@@ -250,7 +250,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
               flex: 2,
               child: TextField(
                 onChanged: (value) => setState(() => _searchTerm = value),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: AppLocalizations.of(context)!.searchExpenses,
                   prefixIcon: Icon(LucideIcons.search, size: 16),
                   isDense: true,
@@ -298,7 +298,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              columns: const [
+              columns: [
                 DataColumn(label: Text(AppLocalizations.of(context)!.date)),
                 DataColumn(label: Text(AppLocalizations.of(context)!.description)),
                 DataColumn(label: Text(AppLocalizations.of(context)!.category)),
@@ -310,7 +310,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             ),
           ),
           if (expenses.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(32.0),
               child: Center(child: Text(AppLocalizations.of(context)!.noExpenses)),
             )
