@@ -132,7 +132,7 @@ class AppSidebar extends StatelessWidget {
       child: Column(
         children: [
            _buildFooterItem(context, LucideIcons.settings, AppLocalizations.of(context)!.settings, () => onPageSelected(AppPage.settings), isActive: currentPage == AppPage.settings),
-           _buildFooterItem(context, LucideIcons.circleHelp, AppLocalizations.of(context)!.help, () => onPageSelected(AppPage.help), isActive: currentPage == AppPage.help),
+           _buildFooterItem(context, LucideIcons.helpCircle, AppLocalizations.of(context)!.help, () => onPageSelected(AppPage.help), isActive: currentPage == AppPage.help),
            _buildLogoutButton(context),
         ],
       ),
