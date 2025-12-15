@@ -262,6 +262,30 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  // --- Recurring Invoice Methods ---
+  Stream<List<RecurringInvoiceWithClient>> watchAllRecurringInvoices() {
+     final query = select(recurringInvoices).join(
+        [innerJoin(clients, clients.id.equalsExp(recurringInvoices.clientId))]);
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        return RecurringInvoiceWithClient(
+          recurringInvoice: row.readTable(recurringInvoices),
+          client: row.readTable(clients),
+        );
+      }).toList();
+    });
+  }
+  
+  Future<int> insertRecurringInvoice(RecurringInvoicesCompanion entry) =>
+      into(recurringInvoices).insert(entry);
+      
+  Future<bool> updateRecurringInvoice(RecurringInvoicesCompanion entry) =>
+      update(recurringInvoices).replace(entry);
+      
+  Future<int> deleteRecurringInvoice(int id) =>
+      (delete(recurringInvoices)..where((i) => i.id.equals(id))).go();
+
   // --- Auth & System Methods ---
   Future<License?> getLicense() =>
       (select(licenses)..where((l) => l.id.equals(1))).getSingleOrNull();
@@ -289,6 +313,12 @@ class InvoiceDetails {
   final Client client;
   final List<LineItem> lineItems;
   InvoiceDetails({required this.invoice, required this.client, required this.lineItems});
+}
+
+class RecurringInvoiceWithClient {
+  final RecurringInvoice recurringInvoice;
+  final Client client;
+  RecurringInvoiceWithClient({required this.recurringInvoice, required this.client});
 }
 
 enum ActivityType { invoice, client, expense }
