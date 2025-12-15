@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:accountanter/l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -266,7 +266,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         padding: const EdgeInsets.all(16.0),
         child: TextField(
           onChanged: (value) => setState(() => _searchTerm = value),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: AppLocalizations.of(context)!.searchInventory,
             prefixIcon: Icon(LucideIcons.search, size: 16),
             isDense: true,
@@ -291,7 +291,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              columns: const [
+              columns: [
                 DataColumn(label: Text(AppLocalizations.of(context)!.itemName)),
                 DataColumn(label: Text(AppLocalizations.of(context)!.sku)),
                 DataColumn(label: Text(AppLocalizations.of(context)!.category)),
@@ -305,7 +305,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             ),
           ),
            if (items.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(32.0),
               child: Center(child: Text(AppLocalizations.of(context)!.noInventoryItems)),
             )

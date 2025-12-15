@@ -1,6 +1,6 @@
 // lib/features/main/widgets/app_sidebar.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:accountanter/l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:accountanter/theme/app_colors.dart';
 import '../main_screen.dart'; // Import the AppPage enum

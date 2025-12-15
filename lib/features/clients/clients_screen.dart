@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:accountanter/l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:intl/intl.dart';
 
@@ -188,7 +188,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
             Expanded(
               child: TextField(
                 onChanged: (value) => setState(() => _searchTerm = value),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: AppLocalizations.of(context)!.searchClients,
                   prefixIcon: Icon(LucideIcons.search, size: 16),
                   isDense: true,
@@ -231,7 +231,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              columns: const [
+              columns: [
                 DataColumn(label: Text(AppLocalizations.of(context)!.clientName)),
                 DataColumn(label: Text('Type')),
                 DataColumn(label: Text('Outstanding Balance')),

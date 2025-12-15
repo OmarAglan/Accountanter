@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:accountanter/l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:accountanter/data/database.dart';
@@ -165,7 +165,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
         padding: const EdgeInsets.all(16.0),
         child: TextField(
           onChanged: (value) => setState(() => _searchTerm = value),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: AppLocalizations.of(context)!.searchInvoices,
             prefixIcon: Icon(LucideIcons.search, size: 16),
             isDense: true,
@@ -211,7 +211,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
-        columns: const [
+        columns: [
           DataColumn(label: Text(AppLocalizations.of(context)!.invoiceNumber)),
           DataColumn(label: Text(AppLocalizations.of(context)!.client)),
           DataColumn(label: Text(AppLocalizations.of(context)!.amount)),
