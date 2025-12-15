@@ -43,7 +43,7 @@ class AppSidebar extends StatelessWidget {
                 _buildNavItem(context, AppPage.taxes, LucideIcons.calculator, AppLocalizations.of(context)!.taxes),
                 _buildNavItem(context, AppPage.currency, LucideIcons.globe, AppLocalizations.of(context)!.currency),
                 _buildNavItem(context, AppPage.documents, LucideIcons.folderOpen, AppLocalizations.of(context)!.documents),
-                _buildNavItem(context, AppPage.reports, LucideIcons.barChart3, AppLocalizations.of(context)!.reports),
+                _buildNavItem(context, AppPage.reports, LucideIcons.chartBar, AppLocalizations.of(context)!.reports),
               ],
             ),
           ),
