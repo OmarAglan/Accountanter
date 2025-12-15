@@ -16,9 +16,10 @@ import {
 interface DashboardProps {
   onCreateInvoice?: () => void;
   onAddClient?: () => void;
+  onNavigate?: (section: string, filter?: string) => void;
 }
 
-export function Dashboard({ onCreateInvoice, onAddClient }: DashboardProps) {
+export function Dashboard({ onCreateInvoice, onAddClient, onNavigate }: DashboardProps) {
   const kpiData = [
     {
       title: "Total Receivables",
@@ -26,6 +27,7 @@ export function Dashboard({ onCreateInvoice, onAddClient }: DashboardProps) {
       change: { value: "+12.5%", type: "positive" as const },
       icon: DollarSign,
       borderColor: "success" as const,
+      onClick: () => onNavigate?.("invoices", "pending"),
     },
     {
       title: "Total Payables",
@@ -33,6 +35,7 @@ export function Dashboard({ onCreateInvoice, onAddClient }: DashboardProps) {
       change: { value: "-8.2%", type: "negative" as const },
       icon: TrendingUp,
       borderColor: "warning" as const,
+      onClick: () => onNavigate?.("expenses"),
     },
     {
       title: "Overdue Invoices",
@@ -40,6 +43,7 @@ export function Dashboard({ onCreateInvoice, onAddClient }: DashboardProps) {
       change: { value: "+1", type: "negative" as const },
       icon: AlertTriangle,
       borderColor: "destructive" as const,
+      onClick: () => onNavigate?.("invoices", "overdue"),
     },
     {
       title: "Active Projects/Clients",
@@ -47,6 +51,7 @@ export function Dashboard({ onCreateInvoice, onAddClient }: DashboardProps) {
       change: { value: "+3", type: "positive" as const },
       icon: Users,
       borderColor: "primary" as const,
+      onClick: () => onNavigate?.("clients"),
     },
   ];
 
@@ -142,7 +147,9 @@ export function Dashboard({ onCreateInvoice, onAddClient }: DashboardProps) {
         <h2 className="mb-4">Overview</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {kpiData.map((kpi, index) => (
-            <KPICard key={index} {...kpi} />
+            <div key={index} onClick={kpi.onClick} className="cursor-pointer transform transition-all hover:scale-105">
+              <KPICard {...kpi} />
+            </div>
           ))}
         </div>
       </div>

@@ -1,19 +1,31 @@
 import { Input } from "./ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Search, Bell } from "lucide-react";
+import { Search, Moon, Sun } from "lucide-react";
 import { Button } from "./ui/button";
+import { useTheme } from "./ThemeProvider";
+import { NotificationBell } from "./NotificationCenter";
+import { useRef } from "react";
 
 interface HeaderProps {
   userName?: string;
+  onSearchFocus?: () => void;
 }
 
-export function Header({ userName = "John" }: HeaderProps) {
+export function Header({ userName = "John", onSearchFocus }: HeaderProps) {
+  const { theme, toggleTheme } = useTheme();
+  const searchRef = useRef<HTMLInputElement>(null);
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
     if (hour < 18) return "Good afternoon";
     return "Good evening";
   };
+
+  // Expose focus method for keyboard shortcuts
+  if (onSearchFocus && searchRef.current) {
+    (window as any).__focusSearch = () => searchRef.current?.focus();
+  }
 
   return (
     <header className="bg-card border-b border-border px-6 py-4 card-shadow">
@@ -34,17 +46,24 @@ export function Header({ userName = "John" }: HeaderProps) {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
+              ref={searchRef}
               type="search"
-              placeholder="Search clients, invoices..."
+              placeholder="Search clients, invoices... (Press /)"
               className="w-80 pl-10 bg-input-background"
             />
           </div>
 
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full"></span>
+          {/* Dark Mode Toggle */}
+          <Button variant="ghost" size="sm" onClick={toggleTheme} title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}>
+            {theme === "light" ? (
+              <Moon className="h-5 w-5" />
+            ) : (
+              <Sun className="h-5 w-5" />
+            )}
           </Button>
+
+          {/* Notifications */}
+          <NotificationBell />
 
           {/* User Avatar */}
           <div className="flex items-center gap-3">

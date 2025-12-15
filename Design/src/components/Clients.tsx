@@ -3,7 +3,7 @@ import { DataTable } from "./DataTable";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Plus, Search, Filter, Users, CreditCard, Banknote } from "lucide-react";
+import { Plus, Search, Filter, Users, CreditCard, Banknote, Trash2, Mail, Eye } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import {
@@ -16,11 +16,16 @@ import {
 } from "./ui/dialog";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
+import { Checkbox } from "./ui/checkbox";
+import { toast } from "sonner@2.0.3";
+import { ClientDetail } from "./ClientDetail";
 
 export function Clients() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedClients, setSelectedClients] = useState<string[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   const clientsData = [
     {
@@ -129,6 +134,50 @@ export function Clients() {
   const totalPayables = Math.abs(clientsData
     .filter(c => c.outstandingBalance < 0)
     .reduce((sum, c) => sum + c.outstandingBalance, 0));
+
+  const handleSelectAll = () => {
+    if (selectedClients.length === filteredClients.length) {
+      setSelectedClients([]);
+    } else {
+      setSelectedClients(filteredClients.map(c => c.id));
+    }
+  };
+
+  const handleSelectClient = (clientId: string) => {
+    setSelectedClients(prev => 
+      prev.includes(clientId) 
+        ? prev.filter(id => id !== clientId)
+        : [...prev, clientId]
+    );
+  };
+
+  const handleBulkEmail = () => {
+    toast.success(`Sending email to ${selectedClients.length} client(s)`);
+    setSelectedClients([]);
+  };
+
+  const handleBulkDelete = () => {
+    toast.success(`Deleted ${selectedClients.length} client(s)`);
+    setSelectedClients([]);
+  };
+
+  const handleViewClient = (clientId: string) => {
+    setSelectedClientId(clientId);
+  };
+
+  if (selectedClientId) {
+    return (
+      <ClientDetail 
+        clientId={selectedClientId}
+        onBack={() => setSelectedClientId(null)}
+        onEditClient={() => toast.info("Edit client functionality")}
+        onDeleteClient={() => {
+          toast.success("Client deleted");
+          setSelectedClientId(null);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -304,31 +353,99 @@ export function Clients() {
         </CardContent>
       </Card>
 
+      {/* Bulk Actions Bar */}
+      {selectedClients.length > 0 && (
+        <Card className="card-shadow bg-accent/10 border-accent">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <p className="font-medium">
+                {selectedClients.length} client{selectedClients.length !== 1 ? 's' : ''} selected
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={handleBulkEmail}>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Send Email
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleBulkDelete} className="text-destructive hover:text-destructive">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedClients([])}>
+                  Clear Selection
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Clients Table */}
       <Card className="card-shadow border-t-4 border-t-primary">
         <CardHeader>
-          <CardTitle>Client List</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {filteredClients.length} of {totalClients} clients
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Client List</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {filteredClients.length} of {totalClients} clients
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox 
+                checked={selectedClients.length === filteredClients.length && filteredClients.length > 0}
+                onCheckedChange={handleSelectAll}
+              />
+              <span className="text-sm text-muted-foreground">Select All</span>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <DataTable
-            columns={clientColumns}
-            data={filteredClients.map(client => ({
-              ...client,
-              // Format the outstanding balance with appropriate colors
-              outstandingBalance: client.outstandingBalance,
-              // Ensure type shows correctly for the status badge
-              type: client.type,
-            }))}
-            onRowAction={(action, row) => {
-              console.log(`Action: ${action}`, row);
-            }}
-            onSort={(column) => {
-              console.log(`Sort by: ${column}`);
-            }}
-          />
+          <div className="space-y-2">
+            {filteredClients.map((client) => (
+              <div 
+                key={client.id}
+                className="flex items-center gap-4 p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+              >
+                <Checkbox 
+                  checked={selectedClients.includes(client.id)}
+                  onCheckedChange={() => handleSelectClient(client.id)}
+                />
+                <div className="flex-1 grid grid-cols-4 gap-4 items-center">
+                  <div>
+                    <p className="font-medium">{client.name}</p>
+                    <p className="text-sm text-muted-foreground">{client.email}</p>
+                  </div>
+                  <div>
+                    <Badge variant={client.type === "Debtor" ? "default" : "secondary"}>
+                      {client.type}
+                    </Badge>
+                  </div>
+                  <div className="text-right">
+                    <p className={`financial-amount font-semibold ${
+                      client.outstandingBalance > 0 ? 'text-warning' :
+                      client.outstandingBalance < 0 ? 'text-success' :
+                      'text-muted-foreground'
+                    }`}>
+                      ${Math.abs(client.outstandingBalance).toLocaleString()}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {client.outstandingBalance > 0 ? 'Receivable' : 
+                       client.outstandingBalance < 0 ? 'Payable' : 'Settled'}
+                    </p>
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewClient(client.id)}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Details
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>

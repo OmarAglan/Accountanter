@@ -15,6 +15,10 @@ import { RecurringInvoices } from "./components/RecurringInvoices";
 import { TaxManagement } from "./components/TaxManagement";
 import { MultiCurrency } from "./components/MultiCurrency";
 import { DocumentManagement } from "./components/DocumentManagement";
+import { ThemeProvider } from "./components/ThemeProvider";
+import { NotificationProvider } from "./components/NotificationCenter";
+import { useKeyboardShortcuts, KeyboardShortcutsDialog } from "./components/KeyboardShortcuts";
+import { Toaster } from "./components/ui/sonner";
 import { Button } from "./components/ui/button";
 import {
   LayoutDashboard,
@@ -35,12 +39,13 @@ import {
   FolderOpen,
 } from "lucide-react";
 
-export default function App() {
+function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeSection, setActiveSection] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showInvoiceEditor, setShowInvoiceEditor] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<string | null>(null);
+  const [invoiceFilter, setInvoiceFilter] = useState<string | undefined>(undefined);
 
   const navigationItems = [
     {
@@ -157,6 +162,33 @@ export default function App() {
     setActiveSection("invoices");
   };
 
+  const handleNavigate = (section: string, filter?: string) => {
+    setActiveSection(section);
+    if (section === "invoices" && filter) {
+      setInvoiceFilter(filter);
+    } else {
+      setInvoiceFilter(undefined);
+    }
+  };
+
+  const handleFocusSearch = () => {
+    if (typeof (window as any).__focusSearch === 'function') {
+      (window as any).__focusSearch();
+    }
+  };
+
+  const { showHelp, setShowHelp } = useKeyboardShortcuts({
+    onCreateInvoice: () => !showInvoiceEditor && handleCreateInvoice(),
+    onAddClient: () => console.log("Add client"),
+    onRecordPayment: () => handleNavigate("payments"),
+    onNavigate: handleNavigate,
+    onToggleTheme: () => {
+      // Theme toggle is handled by the header component
+      document.querySelector('[title*="Switch to"]')?.dispatchEvent(new Event('click'));
+    },
+    onFocusSearch: handleFocusSearch,
+  });
+
   const ActiveComponent = navigationItems.find(
     (item) => item.id === activeSection
   )?.component || Dashboard;
@@ -183,88 +215,104 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar */}
-      <aside
-        className={`${
-          sidebarOpen ? "w-64" : "w-16"
-        } bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col`}
-      >
-        {/* Sidebar Header */}
-        <div className="p-4 border-b border-sidebar-border">
-          <div className="flex items-center justify-between">
-            {sidebarOpen && (
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <Package className="w-5 h-5 text-primary-foreground" />
+    <>
+      <div className="flex h-screen bg-background">
+        {/* Sidebar */}
+        <aside
+          className={`${
+            sidebarOpen ? "w-64" : "w-16"
+          } bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col`}
+        >
+          {/* Sidebar Header */}
+          <div className="p-4 border-b border-sidebar-border">
+            <div className="flex items-center justify-between">
+              {sidebarOpen && (
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                    <Package className="w-5 h-5 text-primary-foreground" />
+                  </div>
+                  <h1 className="font-semibold text-sidebar-foreground">
+                    Accountanter
+                  </h1>
                 </div>
-                <h1 className="font-semibold text-sidebar-foreground">
-                  Accountanter
-                </h1>
-              </div>
-            )}
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="text-sidebar-foreground hover:bg-sidebar-accent"
+              >
+                {sidebarOpen ? (
+                  <X className="h-4 w-4" />
+                ) : (
+                  <Menu className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-2">
+            {navigationItems.map((item) => (
+              <Button
+                key={item.id}
+                variant={activeSection === item.id ? "default" : "ghost"}
+                className={`w-full justify-start ${
+                  sidebarOpen ? "px-3" : "px-2"
+                } ${
+                  activeSection === item.id
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent"
+                }`}
+                onClick={() => setActiveSection(item.id)}
+              >
+                <item.icon className={`h-5 w-5 ${sidebarOpen ? "mr-3" : ""}`} />
+                {sidebarOpen && item.label}
+              </Button>
+            ))}
+          </nav>
+
+          {/* Sidebar Footer */}
+          <div className="p-4 border-t border-sidebar-border space-y-2">
             <Button
               variant="ghost"
-              size="sm"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-sidebar-foreground hover:bg-sidebar-accent"
-            >
-              {sidebarOpen ? (
-                <X className="h-4 w-4" />
-              ) : (
-                <Menu className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
-          {navigationItems.map((item) => (
-            <Button
-              key={item.id}
-              variant={activeSection === item.id ? "default" : "ghost"}
+              onClick={handleLogout}
               className={`w-full justify-start ${
                 sidebarOpen ? "px-3" : "px-2"
-              } ${
-                activeSection === item.id
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent"
-              }`}
-              onClick={() => setActiveSection(item.id)}
+              } text-sidebar-foreground hover:bg-sidebar-accent`}
             >
-              <item.icon className={`h-5 w-5 ${sidebarOpen ? "mr-3" : ""}`} />
-              {sidebarOpen && item.label}
+              <LogOut className={`h-5 w-5 ${sidebarOpen ? "mr-3" : ""}`} />
+              {sidebarOpen && "Logout"}
             </Button>
-          ))}
-        </nav>
+          </div>
+        </aside>
 
-        {/* Sidebar Footer */}
-        <div className="p-4 border-t border-sidebar-border space-y-2">
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            className={`w-full justify-start ${
-              sidebarOpen ? "px-3" : "px-2"
-            } text-sidebar-foreground hover:bg-sidebar-accent`}
-          >
-            <LogOut className={`h-5 w-5 ${sidebarOpen ? "mr-3" : ""}`} />
-            {sidebarOpen && "Logout"}
-          </Button>
-        </div>
-      </aside>
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto">
+          <Header userName="John" onSearchFocus={handleFocusSearch} />
+          <div className="p-6 max-w-7xl mx-auto">
+            <ActiveComponent 
+              onCreateInvoice={handleCreateInvoice}
+              onEditInvoice={handleEditInvoice}
+              onAddClient={() => console.log("Add client")}
+              onNavigate={handleNavigate}
+              filter={invoiceFilter}
+            />
+          </div>
+        </main>
+      </div>
+      <KeyboardShortcutsDialog open={showHelp} onOpenChange={setShowHelp} />
+      <Toaster />
+    </>
+  );
+}
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <Header userName="John" />
-        <div className="p-6 max-w-7xl mx-auto">
-          <ActiveComponent 
-            onCreateInvoice={handleCreateInvoice}
-            onEditInvoice={handleEditInvoice}
-            onAddClient={() => console.log("Add client")}
-          />
-        </div>
-      </main>
-    </div>
+export default function App() {
+  return (
+    <ThemeProvider>
+      <NotificationProvider>
+        <AppContent />
+      </NotificationProvider>
+    </ThemeProvider>
   );
 }

@@ -1,15 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DataTable } from "./DataTable";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Plus, Search, Filter, Download } from "lucide-react";
+import { Plus, Search, Filter, Download, Eye, Send, Trash2, FileText } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Checkbox } from "./ui/checkbox";
+import { InvoicePDFPreview } from "./InvoicePDFPreview";
+import { toast } from "sonner@2.0.3";
 
-export function Invoices() {
+interface InvoicesProps {
+  onCreateInvoice?: () => void;
+  onEditInvoice?: (invoiceId: string) => void;
+  filter?: string;
+}
+
+export function Invoices({ onCreateInvoice, onEditInvoice, filter }: InvoicesProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
+  const [previewInvoice, setPreviewInvoice] = useState<any>(null);
+  const [showPDFPreview, setShowPDFPreview] = useState(false);
+
+  // Apply filter from dashboard KPI clicks
+  useEffect(() => {
+    if (filter) {
+      setActiveTab(filter);
+    }
+  }, [filter]);
 
   const invoicesData = [
     {
@@ -114,6 +133,58 @@ export function Invoices() {
     .filter(i => i.status === "Overdue")
     .reduce((sum, invoice) => sum + invoice.amount, 0);
 
+  const handleSelectAll = () => {
+    if (selectedInvoices.length === filteredInvoices.length) {
+      setSelectedInvoices([]);
+    } else {
+      setSelectedInvoices(filteredInvoices.map(inv => inv.id));
+    }
+  };
+
+  const handleSelectInvoice = (invoiceId: string) => {
+    setSelectedInvoices(prev => 
+      prev.includes(invoiceId) 
+        ? prev.filter(id => id !== invoiceId)
+        : [...prev, invoiceId]
+    );
+  };
+
+  const handleBulkSend = () => {
+    toast.success(`Sent ${selectedInvoices.length} invoice(s)`);
+    setSelectedInvoices([]);
+  };
+
+  const handleBulkDelete = () => {
+    toast.success(`Deleted ${selectedInvoices.length} invoice(s)`);
+    setSelectedInvoices([]);
+  };
+
+  const handlePreviewInvoice = (invoice: any) => {
+    setPreviewInvoice({
+      invoiceNumber: invoice.id,
+      issueDate: invoice.issueDate,
+      dueDate: invoice.dueDate,
+      clientName: invoice.client,
+      clientEmail: "contact@example.com",
+      clientAddress: "123 Client St, City, State 12345",
+      status: invoice.status,
+      items: [
+        {
+          description: invoice.description,
+          quantity: 1,
+          rate: invoice.amount,
+          amount: invoice.amount,
+        },
+      ],
+      subtotal: invoice.amount,
+      tax: invoice.amount * 0.1,
+      total: invoice.amount * 1.1,
+      notes: "Thank you for your business!",
+      terms: "Payment due within 30 days",
+    });
+    setShowPDFPreview(true);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -129,7 +200,7 @@ export function Invoices() {
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
-          <Button>
+          <Button onClick={onCreateInvoice}>
             <Plus className="mr-2 h-4 w-4" />
             New Invoice
           </Button>
@@ -201,10 +272,45 @@ export function Invoices() {
         </CardContent>
       </Card>
 
+      {/* Bulk Actions Bar */}
+      {selectedInvoices.length > 0 && (
+        <Card className="card-shadow bg-accent/10 border-accent">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <p className="font-medium">
+                {selectedInvoices.length} invoice{selectedInvoices.length !== 1 ? 's' : ''} selected
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={handleBulkSend}>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleBulkDelete} className="text-destructive hover:text-destructive">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedInvoices([])}>
+                  Clear Selection
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Invoices Table with Tabs */}
       <Card>
         <CardHeader>
-          <CardTitle>Invoice Management</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Invoice Management</CardTitle>
+            <div className="flex items-center gap-2">
+              <Checkbox 
+                checked={selectedInvoices.length === filteredInvoices.length && filteredInvoices.length > 0}
+                onCheckedChange={handleSelectAll}
+              />
+              <span className="text-sm text-muted-foreground">Select All</span>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -241,17 +347,78 @@ export function Invoices() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value={activeTab} className="mt-6">
-              <DataTable
-                columns={invoiceColumns}
-                data={filteredInvoices}
-                onRowAction={(action, row) => {
-                  console.log(`Action: ${action}`, row);
-                }}
-              />
+              <div className="space-y-2">
+                {filteredInvoices.map((invoice) => (
+                  <div 
+                    key={invoice.id}
+                    className="flex items-center gap-4 p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                  >
+                    <Checkbox 
+                      checked={selectedInvoices.includes(invoice.id)}
+                      onCheckedChange={() => handleSelectInvoice(invoice.id)}
+                    />
+                    <div className="flex-1 grid grid-cols-5 gap-4 items-center">
+                      <div>
+                        <p className="font-medium">{invoice.id}</p>
+                        <p className="text-sm text-muted-foreground">{invoice.client}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm">{invoice.description}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="financial-amount font-semibold">
+                          ${invoice.amount.toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <Badge variant={
+                          invoice.status === "Paid" ? "default" :
+                          invoice.status === "Pending" ? "secondary" :
+                          invoice.status === "Overdue" ? "destructive" :
+                          "outline"
+                        }>
+                          {invoice.status}
+                        </Badge>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Due: {new Date(invoice.dueDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handlePreviewInvoice(invoice)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Preview
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => onEditInvoice?.(invoice.id)}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Edit
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* PDF Preview Dialog */}
+      {previewInvoice && (
+        <InvoicePDFPreview 
+          open={showPDFPreview}
+          onOpenChange={setShowPDFPreview}
+          invoice={previewInvoice}
+          onSendEmail={() => toast.success(`Invoice sent to ${previewInvoice.clientEmail}`)}
+        />
+      )}
     </div>
   );
 }
