@@ -5,8 +5,6 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:intl/intl.dart';
 import 'widgets/add_edit_recurring_invoice_dialog.dart';
 
-class RecurringInvoicesScreen extends StatelessWidget {
-  const RecurringInvoicesScreen({super.key});
 
 class RecurringInvoicesScreen extends StatelessWidget {
   const RecurringInvoicesScreen({super.key});
