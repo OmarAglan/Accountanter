@@ -1,0 +1,15 @@
+enum AppPage {
+  dashboard,
+  clients,
+  invoices,
+  inventory,
+  expenses,
+  recurring,
+  payments,
+  taxes,
+  currency,
+  documents,
+  reports,
+  settings,
+  help,
+}

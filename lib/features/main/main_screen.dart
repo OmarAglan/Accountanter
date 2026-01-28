@@ -3,6 +3,7 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:accountanter/data/database.dart';
 import 'package:accountanter/l10n/app_localizations.dart';
 import 'package:accountanter/features/main/app_shell_scope.dart';
+import 'app_page.dart';
 import 'widgets/app_sidebar.dart';
 import 'widgets/app_header.dart';
 // We will create placeholder screens for these soon
@@ -22,9 +23,6 @@ import '../help/help_screen.dart';
 import '../currency/currency_screen.dart';
 import '../clients/widgets/add_edit_client_dialog.dart';
 import '../inventory/widgets/add_edit_inventory_dialog.dart';
-
-// 2. ADD 'expenses' to the enum
-enum AppPage { dashboard, clients, invoices, inventory, expenses, recurring, payments, taxes, currency, documents, reports, settings, help }
 
 class MainScreen extends StatefulWidget {
   final VoidCallback onLogout;
@@ -273,6 +271,7 @@ class _MainScreenState extends State<MainScreen> {
         addInventoryItem: _addInventoryItem,
         openNotifications: _openNotifications,
         openSearch: _openSearch,
+        logout: widget.onLogout,
       ),
       child: Scaffold(
         body: Row(

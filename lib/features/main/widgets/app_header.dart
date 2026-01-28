@@ -4,6 +4,8 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:accountanter/theme/app_colors.dart';
 import 'package:accountanter/features/main/app_shell_scope.dart';
 
+enum _AccountMenuAction { settings, help, logout }
+
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final String userName;
   final String subtitle;
@@ -26,6 +28,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final actions = AppShellScope.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       height: 72,
@@ -90,26 +93,59 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
               const SizedBox(width: 16),
 
               // User Avatar
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: AppColors.primary,
-                    child: Text(
-                      userName.isNotEmpty ? userName[0].toUpperCase() : 'A',
-                      style: const TextStyle(color: AppColors.primaryForeground),
-                    ),
+              PopupMenuButton<_AccountMenuAction>(
+                tooltip: '',
+                onSelected: (value) {
+                  switch (value) {
+                    case _AccountMenuAction.settings:
+                      actions.navigateTo(AppPage.settings);
+                      break;
+                    case _AccountMenuAction.help:
+                      actions.navigateTo(AppPage.help);
+                      break;
+                    case _AccountMenuAction.logout:
+                      actions.logout();
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: _AccountMenuAction.settings,
+                    child: Text(l10n.settings),
                   ),
-                  const SizedBox(width: 12),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(userName, style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500)),
-                      Text(AppLocalizations.of(context)!.owner, style: textTheme.bodyMedium),
-                    ],
-                  )
+                  PopupMenuItem(
+                    value: _AccountMenuAction.help,
+                    child: Text(l10n.help),
+                  ),
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: _AccountMenuAction.logout,
+                    child: Text(l10n.logout),
+                  ),
                 ],
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: AppColors.primary,
+                      child: Text(
+                        userName.isNotEmpty ? userName[0].toUpperCase() : 'A',
+                        style: const TextStyle(color: AppColors.primaryForeground),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(userName, style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500)),
+                        Text(l10n.owner, style: textTheme.bodyMedium),
+                      ],
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.mutedForeground),
+                  ],
+                ),
               ),
             ],
           ),

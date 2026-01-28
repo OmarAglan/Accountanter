@@ -8,6 +8,7 @@ class AppShellActions {
   final VoidCallback addInventoryItem;
   final VoidCallback openNotifications;
   final VoidCallback openSearch;
+  final VoidCallback logout;
 
   const AppShellActions({
     required this.navigateTo,
@@ -16,6 +17,7 @@ class AppShellActions {
     required this.addInventoryItem,
     required this.openNotifications,
     required this.openSearch,
+    required this.logout,
   });
 }
 
