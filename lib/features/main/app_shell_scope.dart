@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'main_screen.dart';
+import 'app_page.dart';
 
 class AppShellActions {
   final ValueChanged<AppPage> navigateTo;
