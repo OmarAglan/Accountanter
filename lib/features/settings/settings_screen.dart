@@ -5,7 +5,8 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:accountanter/theme/app_colors.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final ValueChanged<Locale> onLocaleChanged;
+  const SettingsScreen({super.key, required this.onLocaleChanged});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -20,6 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _demoMode = false;
   TaxRate? _defaultTaxRate;
   bool _isLoading = true;
+  String _localeCode = 'en';
 
   @override
   void initState() {
@@ -41,6 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final symbol = await _database.getSettingString('currency.symbol');
     final demo = await _database.getSettingBool('demo.mode');
     final defaultTax = await _database.getDefaultTaxRate();
+    final localeCode = await _database.getSettingString('ui.locale');
 
     if (!mounted) return;
     setState(() {
@@ -49,8 +52,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _currencySymbolController.text = symbol ?? '\$';
       _demoMode = demo ?? false;
       _defaultTaxRate = defaultTax;
+      _localeCode = (localeCode == 'ar' || localeCode == 'en') ? (localeCode ?? 'en') : 'en';
       _isLoading = false;
     });
+  }
+
+  Future<void> _setLocaleCode(String code) async {
+    await _database.setSettingString('ui.locale', code);
+    widget.onLocaleChanged(Locale(code));
+    if (!mounted) return;
+    setState(() => _localeCode = code);
   }
 
   Future<void> _saveSettings() async {
@@ -127,6 +138,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _buildCompanyCard(context),
         const SizedBox(height: 24),
         _buildFinanceDefaultsCard(context),
+        const SizedBox(height: 24),
+        _buildLanguageCard(context),
         const SizedBox(height: 24),
         _buildDataToolsCard(context),
       ],
@@ -228,6 +241,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 foregroundColor: AppColors.destructive,
                 side: const BorderSide(color: AppColors.destructive),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageCard(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Language', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              key: ValueKey('language:$_localeCode'),
+              initialValue: _localeCode,
+              decoration: const InputDecoration(isDense: true),
+              items: const [
+                DropdownMenuItem(value: 'en', child: Text('English')),
+                DropdownMenuItem(value: 'ar', child: Text('العربية')),
+              ],
+              onChanged: (value) {
+                if (value == null) return;
+                _setLocaleCode(value);
+              },
             ),
           ],
         ),
