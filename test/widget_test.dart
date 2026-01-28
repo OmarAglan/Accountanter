@@ -1,12 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:accountanter/main.dart';
 import 'package:accountanter/features/clients/widgets/client_summary_card.dart';
 import 'package:accountanter/features/dashboard/widgets/action_item_card.dart';
 import 'package:accountanter/features/expenses/widgets/expense_summary_card.dart';
 import 'package:accountanter/features/inventory/widgets/inventory_summary_card.dart';
+
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
   Future<void> pumpTestWidget(WidgetTester tester, Widget child) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -75,5 +75,5 @@ void main() {
 
     expect(find.text('Items'), findsOneWidget);
     expect(find.text('48'), findsOneWidget);
-}
+  });
 }
