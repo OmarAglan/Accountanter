@@ -54,6 +54,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get logout => 'تسجيل الخروج';
 
   @override
+  String get language => 'اللغة';
+
+  @override
+  String get englishLanguageName => 'الإنجليزية';
+
+  @override
+  String get arabicLanguageName => 'العربية';
+
+  @override
   String get settingsNotImplemented => 'صفحة الإعدادات غير مُنفذة بعد.';
 
   @override

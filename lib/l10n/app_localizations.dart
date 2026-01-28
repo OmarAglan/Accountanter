@@ -188,6 +188,24 @@ abstract class AppLocalizations {
   /// **'Logout'**
   String get logout;
 
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @englishLanguageName.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get englishLanguageName;
+
+  /// No description provided for @arabicLanguageName.
+  ///
+  /// In en, this message translates to:
+  /// **'Arabic'**
+  String get arabicLanguageName;
+
   /// No description provided for @settingsNotImplemented.
   ///
   /// In en, this message translates to:

@@ -249,21 +249,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildLanguageCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Language', style: Theme.of(context).textTheme.titleLarge),
+            Text(l10n.language, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               key: ValueKey('language:$_localeCode'),
               initialValue: _localeCode,
               decoration: const InputDecoration(isDense: true),
-              items: const [
-                DropdownMenuItem(value: 'en', child: Text('English')),
-                DropdownMenuItem(value: 'ar', child: Text('العربية')),
+              items: [
+                DropdownMenuItem(value: 'en', child: Text(l10n.englishLanguageName)),
+                DropdownMenuItem(value: 'ar', child: Text(l10n.arabicLanguageName)),
               ],
               onChanged: (value) {
                 if (value == null) return;

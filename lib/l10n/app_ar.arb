@@ -9,6 +9,9 @@
     "settings": "الإعدادات",
     "help": "المساعدة",
     "logout": "تسجيل الخروج",
+    "language": "اللغة",
+    "englishLanguageName": "الإنجليزية",
+    "arabicLanguageName": "العربية",
     
     "settingsNotImplemented": "صفحة الإعدادات غير مُنفذة بعد.",
     "helpNotImplemented": "صفحة المساعدة غير مُنفذة بعد.",

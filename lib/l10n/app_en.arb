@@ -15,6 +15,9 @@
     "documents": "Documents",
     "reports": "Reports",
     "logout": "Logout",
+    "language": "Language",
+    "englishLanguageName": "English",
+    "arabicLanguageName": "Arabic",
     
     "settingsNotImplemented": "Settings page not implemented yet.",
     "helpNotImplemented": "Help page not implemented yet.",

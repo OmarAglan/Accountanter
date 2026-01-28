@@ -54,6 +54,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logout => 'Logout';
 
   @override
+  String get language => 'Language';
+
+  @override
+  String get englishLanguageName => 'English';
+
+  @override
+  String get arabicLanguageName => 'Arabic';
+
+  @override
   String get settingsNotImplemented => 'Settings page not implemented yet.';
 
   @override
