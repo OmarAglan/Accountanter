@@ -33,12 +33,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() => _currencySymbol = symbol);
   }
 
-  void _refreshData() {
-    setState(() {
-      _dashboardDataFuture = _database.getDashboardData();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<DashboardData>(
@@ -266,19 +260,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildRecentActivity(BuildContext context, DashboardData data) {
     final currencyFormat = NumberFormat.currency(symbol: _currencySymbol);
     
-    IconData _getActivityIcon(ActivityType type) {
-      switch(type) {
-        case ActivityType.invoice: return LucideIcons.fileText;
-        case ActivityType.client: return LucideIcons.users;
-        case ActivityType.expense: return LucideIcons.receipt;
+    IconData getActivityIcon(ActivityType type) {
+      switch (type) {
+        case ActivityType.invoice:
+          return LucideIcons.fileText;
+        case ActivityType.client:
+          return LucideIcons.users;
+        case ActivityType.expense:
+          return LucideIcons.receipt;
       }
     }
     
-    Color _getActivityColor(ActivityType type) {
-      switch(type) {
-        case ActivityType.invoice: return AppColors.info;
-        case ActivityType.client: return AppColors.primary;
-        case ActivityType.expense: return AppColors.warning;
+    Color getActivityColor(ActivityType type) {
+      switch (type) {
+        case ActivityType.invoice:
+          return AppColors.info;
+        case ActivityType.client:
+          return AppColors.primary;
+        case ActivityType.expense:
+          return AppColors.warning;
       }
     }
 
@@ -306,7 +306,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 separatorBuilder: (context, index) => const Divider(height: 32),
                 itemBuilder: (context, index) {
                   final activity = data.recentActivities[index];
-                  final color = _getActivityColor(activity.type);
+                  final color = getActivityColor(activity.type);
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: Container(
@@ -315,7 +315,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         color: color.withAlpha(26),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(_getActivityIcon(activity.type), color: color, size: 20),
+                      child: Icon(getActivityIcon(activity.type), color: color, size: 20),
                     ),
                     title: Text(activity.description, style: const TextStyle(fontWeight: FontWeight.w500)),
                     subtitle: Text(DateFormat.yMMMd().add_jm().format(activity.date)),
