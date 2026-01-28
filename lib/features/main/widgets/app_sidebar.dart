@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:accountanter/l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:accountanter/theme/app_colors.dart';
-import '../main_screen.dart'; // Import the AppPage enum
+import '../app_page.dart';
 
 class AppSidebar extends StatelessWidget {
   final bool isExpanded;

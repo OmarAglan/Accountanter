@@ -3,6 +3,7 @@ import 'package:accountanter/l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:accountanter/theme/app_colors.dart';
 import 'package:accountanter/features/main/app_shell_scope.dart';
+import '../app_page.dart';
 
 enum _AccountMenuAction { settings, help, logout }
 
