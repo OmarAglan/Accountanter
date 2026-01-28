@@ -1135,6 +1135,546 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Print'**
   String get print;
+
+  /// No description provided for @helpQuickHelpSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick help for the beta starter edition.'**
+  String get helpQuickHelpSubtitle;
+
+  /// No description provided for @helpGettingStartedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting Started'**
+  String get helpGettingStartedTitle;
+
+  /// No description provided for @helpGettingStartedBulletAddClient.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a client from Clients → Add New Client.'**
+  String get helpGettingStartedBulletAddClient;
+
+  /// No description provided for @helpGettingStartedBulletCreateInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an invoice from Invoices → New Invoice.'**
+  String get helpGettingStartedBulletCreateInvoice;
+
+  /// No description provided for @helpGettingStartedBulletTrackStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Track stock in Inventory and record Expenses as they happen.'**
+  String get helpGettingStartedBulletTrackStock;
+
+  /// No description provided for @helpGettingStartedBulletRecordPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Record invoice payments in Payments to mark invoices as Paid.'**
+  String get helpGettingStartedBulletRecordPayments;
+
+  /// No description provided for @helpBetaNotesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Beta Notes'**
+  String get helpBetaNotesTitle;
+
+  /// No description provided for @helpBetaNotesBulletLocalStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'All data is stored locally on your device (SQLite).'**
+  String get helpBetaNotesBulletLocalStorage;
+
+  /// No description provided for @helpBetaNotesBulletNoCloudSync.
+  ///
+  /// In en, this message translates to:
+  /// **'No cloud sync is included in this beta.'**
+  String get helpBetaNotesBulletNoCloudSync;
+
+  /// No description provided for @helpBetaNotesBulletDocumentsRegistry.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents are stored as file paths in a registry (no file picker yet).'**
+  String get helpBetaNotesBulletDocumentsRegistry;
+
+  /// No description provided for @helpKeyboardShortcutsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard Shortcuts'**
+  String get helpKeyboardShortcutsTitle;
+
+  /// No description provided for @helpKeyboardShortcutsBulletSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the top search bar to quickly jump between pages.'**
+  String get helpKeyboardShortcutsBulletSearch;
+
+  /// No description provided for @helpSupportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get helpSupportTitle;
+
+  /// No description provided for @helpSupportBulletBugReport.
+  ///
+  /// In en, this message translates to:
+  /// **'If you find a bug, capture steps to reproduce and screenshots.'**
+  String get helpSupportBulletBugReport;
+
+  /// No description provided for @helpSupportBulletShareFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Share feedback with your beta contact/channel.'**
+  String get helpSupportBulletShareFeedback;
+
+  /// No description provided for @helpTipDemoMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: Use Settings → Demo Mode to seed sample categories for testing.'**
+  String get helpTipDemoMode;
+
+  /// No description provided for @documentsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Store and link documents to your records.'**
+  String get documentsSubtitle;
+
+  /// No description provided for @documentsAddDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Document'**
+  String get documentsAddDocument;
+
+  /// No description provided for @documentsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search documents…'**
+  String get documentsSearchHint;
+
+  /// No description provided for @documentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents yet.'**
+  String get documentsEmpty;
+
+  /// No description provided for @documentsDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Document'**
+  String get documentsDeleteTitle;
+
+  /// No description provided for @documentsTableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get documentsTableTitle;
+
+  /// No description provided for @documentsTableType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get documentsTableType;
+
+  /// No description provided for @documentsTableLinkedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked To'**
+  String get documentsTableLinkedTo;
+
+  /// No description provided for @documentsTablePath.
+  ///
+  /// In en, this message translates to:
+  /// **'Path'**
+  String get documentsTablePath;
+
+  /// No description provided for @documentsTableUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded'**
+  String get documentsTableUploaded;
+
+  /// No description provided for @documentsTableActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions'**
+  String get documentsTableActions;
+
+  /// No description provided for @documentsDialogAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Document'**
+  String get documentsDialogAddTitle;
+
+  /// No description provided for @documentsDialogEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Document'**
+  String get documentsDialogEditTitle;
+
+  /// No description provided for @documentsFieldTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Title *'**
+  String get documentsFieldTitleLabel;
+
+  /// No description provided for @documentsFieldFileTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'File Type *'**
+  String get documentsFieldFileTypeLabel;
+
+  /// No description provided for @documentsFieldFilePathLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'File Path *'**
+  String get documentsFieldFilePathLabel;
+
+  /// No description provided for @documentsFieldRelatedToLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Related To'**
+  String get documentsFieldRelatedToLabel;
+
+  /// No description provided for @documentsFieldRelatedEntityIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Related Entity ID'**
+  String get documentsFieldRelatedEntityIdLabel;
+
+  /// No description provided for @documentsRelatedNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get documentsRelatedNone;
+
+  /// No description provided for @documentsRelatedInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice'**
+  String get documentsRelatedInvoice;
+
+  /// No description provided for @documentsRelatedExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get documentsRelatedExpense;
+
+  /// No description provided for @documentsRelatedClient.
+  ///
+  /// In en, this message translates to:
+  /// **'Client'**
+  String get documentsRelatedClient;
+
+  /// No description provided for @open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get open;
+
+  /// No description provided for @revealInFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reveal in Folder'**
+  String get revealInFolder;
+
+  /// No description provided for @copyPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Path'**
+  String get copyPath;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard.'**
+  String get copiedToClipboard;
+
+  /// No description provided for @fileNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'File not found.'**
+  String get fileNotFound;
+
+  /// No description provided for @couldNotOpenFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open file.'**
+  String get couldNotOpenFile;
+
+  /// No description provided for @operationNotSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This action is not supported on this platform.'**
+  String get operationNotSupported;
+
+  /// No description provided for @fileSavedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to {path}'**
+  String fileSavedTo(Object path);
+
+  /// No description provided for @reportsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A quick overview of revenue, expenses, and outstanding balances.'**
+  String get reportsSubtitle;
+
+  /// No description provided for @refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
+
+  /// No description provided for @reportRevenue12m.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue (12m)'**
+  String get reportRevenue12m;
+
+  /// No description provided for @reportExpenses12m.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses (12m)'**
+  String get reportExpenses12m;
+
+  /// No description provided for @reportNet12m.
+  ///
+  /// In en, this message translates to:
+  /// **'Net (12m)'**
+  String get reportNet12m;
+
+  /// No description provided for @reportInvoicesAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoices (All)'**
+  String get reportInvoicesAll;
+
+  /// No description provided for @reportPaidRevenueByMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid Revenue by Month'**
+  String get reportPaidRevenueByMonth;
+
+  /// No description provided for @reportExpensesByMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses by Month'**
+  String get reportExpensesByMonth;
+
+  /// No description provided for @reportNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data.'**
+  String get reportNoData;
+
+  /// No description provided for @reportMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get reportMonth;
+
+  /// No description provided for @reportTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get reportTotal;
+
+  /// No description provided for @settingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure company defaults and app behavior.'**
+  String get settingsSubtitle;
+
+  /// No description provided for @settingsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings saved.'**
+  String get settingsSaved;
+
+  /// No description provided for @companySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get companySection;
+
+  /// No description provided for @companyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Company Name'**
+  String get companyName;
+
+  /// No description provided for @companyAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Company Address'**
+  String get companyAddress;
+
+  /// No description provided for @companyNamePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Company Name'**
+  String get companyNamePlaceholder;
+
+  /// No description provided for @companyAddressPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'123 Business Street\nBusiness City, BC 12345'**
+  String get companyAddressPlaceholder;
+
+  /// No description provided for @defaultsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Defaults'**
+  String get defaultsSection;
+
+  /// No description provided for @currencySymbol.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency Symbol'**
+  String get currencySymbol;
+
+  /// No description provided for @defaultTaxRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Default Tax Rate'**
+  String get defaultTaxRate;
+
+  /// No description provided for @demoMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo Mode'**
+  String get demoMode;
+
+  /// No description provided for @demoModeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed sample categories and vendors for demo purposes.'**
+  String get demoModeSubtitle;
+
+  /// No description provided for @dataTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Tools'**
+  String get dataTools;
+
+  /// No description provided for @factoryReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Factory Reset'**
+  String get factoryReset;
+
+  /// No description provided for @factoryResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Factory reset?'**
+  String get factoryResetTitle;
+
+  /// No description provided for @reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// No description provided for @dataClearedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data cleared'**
+  String get dataClearedTitle;
+
+  /// No description provided for @dataClearedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'All local data was cleared. Restart the app to re-activate and log in again.'**
+  String get dataClearedMessage;
+
+  /// No description provided for @welcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome Back'**
+  String get welcomeBack;
+
+  /// No description provided for @usernameOrEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Username or Email'**
+  String get usernameOrEmail;
+
+  /// No description provided for @usernameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Username is required'**
+  String get usernameRequired;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get passwordRequired;
+
+  /// No description provided for @rememberMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember Me'**
+  String get rememberMe;
+
+  /// No description provided for @login.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get login;
+
+  /// No description provided for @invalidUsernameOrPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid username or password.'**
+  String get invalidUsernameOrPassword;
+
+  /// No description provided for @activateAccountanter.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate Accountanter'**
+  String get activateAccountanter;
+
+  /// No description provided for @activationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your license key and create your local user account.'**
+  String get activationSubtitle;
+
+  /// No description provided for @licenseKey.
+  ///
+  /// In en, this message translates to:
+  /// **'License Key'**
+  String get licenseKey;
+
+  /// No description provided for @licenseKeyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'License key is required'**
+  String get licenseKeyRequired;
+
+  /// No description provided for @passwordMinChars.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get passwordMinChars;
+
+  /// No description provided for @activateAndCreateUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate and Create User'**
+  String get activateAndCreateUser;
+
+  /// No description provided for @invalidLicenseKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid License Key.'**
+  String get invalidLicenseKey;
 }
 
 class _AppLocalizationsDelegate

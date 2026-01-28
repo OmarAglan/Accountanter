@@ -73,13 +73,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(l10n.reports, style: Theme.of(context).textTheme.headlineMedium),
-                    Text('A quick overview of revenue, expenses, and outstanding balances.', style: Theme.of(context).textTheme.bodyMedium),
+                    Text(l10n.reportsSubtitle, style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ),
                 OutlinedButton.icon(
                   onPressed: () => setState(() => _future = _load()),
                   icon: const Icon(LucideIcons.refreshCw, size: 16),
-                  label: const Text('Refresh'),
+                  label: Text(l10n.refresh),
                 ),
               ],
             ),
@@ -96,9 +96,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   childAspectRatio: childAspectRatio,
                   children: [
-                    _ReportCard(title: 'Revenue (12m)', value: currency.format(revenueTotal), icon: LucideIcons.trendingUp, color: AppColors.success),
-                    _ReportCard(title: 'Expenses (12m)', value: currency.format(expenseTotal), icon: LucideIcons.trendingDown, color: AppColors.destructive),
-                    _ReportCard(title: 'Net (12m)', value: currency.format(net), icon: LucideIcons.chartBar, color: net >= 0 ? AppColors.success : AppColors.destructive),
+                    _ReportCard(title: l10n.reportRevenue12m, value: currency.format(revenueTotal), icon: LucideIcons.trendingUp, color: AppColors.success),
+                    _ReportCard(title: l10n.reportExpenses12m, value: currency.format(expenseTotal), icon: LucideIcons.trendingDown, color: AppColors.destructive),
+                    _ReportCard(title: l10n.reportNet12m, value: currency.format(net), icon: LucideIcons.chartBar, color: net >= 0 ? AppColors.success : AppColors.destructive),
                     _ReportCard(title: l10n.totalReceivables, value: currency.format(data.receivables), icon: LucideIcons.dollarSign, color: AppColors.primary),
                   ],
                 );
@@ -118,7 +118,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   childAspectRatio: childAspectRatio,
                   children: [
                     _ReportCard(title: l10n.totalPayables, value: currency.format(data.payables), icon: LucideIcons.banknote, color: AppColors.warning),
-                    _ReportCard(title: 'Invoices (All)', value: data.totalInvoices.toString(), icon: LucideIcons.fileText, color: AppColors.primary),
+                    _ReportCard(title: l10n.reportInvoicesAll, value: data.totalInvoices.toString(), icon: LucideIcons.fileText, color: AppColors.primary),
                     _ReportCard(title: l10n.overdueInvoices, value: data.overdueInvoices.toString(), icon: LucideIcons.triangleAlert, color: AppColors.destructive),
                     _ReportCard(title: l10n.pending, value: data.pendingInvoices.toString(), icon: LucideIcons.clock, color: AppColors.warning),
                   ],
@@ -126,21 +126,21 @@ class _ReportsScreenState extends State<ReportsScreen> {
               },
             ),
             const SizedBox(height: 24),
-            _buildMonthlyTable('Paid Revenue by Month', data.revenueByMonth, currency),
+            _buildMonthlyTable(l10n.reportPaidRevenueByMonth, data.revenueByMonth, currency, l10n),
             const SizedBox(height: 24),
-            _buildMonthlyTable('Expenses by Month', data.expensesByMonth, currency),
+            _buildMonthlyTable(l10n.reportExpensesByMonth, data.expensesByMonth, currency, l10n),
           ],
         );
       },
     );
   }
 
-  Widget _buildMonthlyTable(String title, List<MonthlyTotal> items, NumberFormat currency) {
+  Widget _buildMonthlyTable(String title, List<MonthlyTotal> items, NumberFormat currency, AppLocalizations l10n) {
     if (items.isEmpty) {
       return Card(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
-          child: Text('$title: No data.'),
+          child: Text('$title: ${l10n.reportNoData}'),
         ),
       );
     }
@@ -163,9 +163,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              columns: const [
-                DataColumn(label: Text('Month')),
-                DataColumn(label: Text('Total')),
+              columns: [
+                DataColumn(label: Text(l10n.reportMonth)),
+                DataColumn(label: Text(l10n.reportTotal)),
               ],
               rows: items.map((m) {
                 return DataRow(cells: [

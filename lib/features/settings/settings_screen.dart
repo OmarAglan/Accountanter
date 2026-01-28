@@ -47,9 +47,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (!mounted) return;
     setState(() {
-      _companyNameController.text = name ?? 'Your Company Name';
-      _companyAddressController.text = address ?? '123 Business Street\nBusiness City, BC 12345';
-      _currencySymbolController.text = symbol ?? '\$';
+      _companyNameController.text = name?.trim() ?? '';
+      _companyAddressController.text = address?.trim() ?? '';
+      _currencySymbolController.text = (symbol == null || symbol.trim().isEmpty) ? '\$' : symbol.trim();
       _demoMode = demo ?? false;
       _defaultTaxRate = defaultTax;
       _localeCode = (localeCode == 'ar' || localeCode == 'en') ? (localeCode ?? 'en') : 'en';
@@ -71,7 +71,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await _database.setSettingBool('demo.mode', _demoMode);
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settings saved.')));
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.settingsSaved)));
   }
 
   Future<void> _confirmFactoryReset() async {
@@ -79,14 +80,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Factory reset?'),
+        title: Text(l10n.factoryResetTitle),
         content: Text(l10n.deleteConfirmation),
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.cancel)),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppColors.destructive),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Reset'),
+            child: Text(l10n.reset),
           ),
         ],
       ),
@@ -97,10 +98,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Data cleared'),
-        content: const Text('All local data was cleared. Restart the app to re-activate and log in again.'),
+        title: Text(l10n.dataClearedTitle),
+        content: Text(l10n.dataClearedMessage),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK')),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.ok)),
         ],
       ),
     );
@@ -124,7 +125,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(l10n.settings, style: Theme.of(context).textTheme.headlineMedium),
-                Text('Configure company defaults and app behavior.', style: Theme.of(context).textTheme.bodyMedium),
+                Text(l10n.settingsSubtitle, style: Theme.of(context).textTheme.bodyMedium),
               ],
             ),
             ElevatedButton.icon(
@@ -147,23 +148,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildCompanyCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Company', style: Theme.of(context).textTheme.titleLarge),
+            Text(l10n.companySection, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             TextField(
               controller: _companyNameController,
-              decoration: const InputDecoration(labelText: 'Company Name'),
+              decoration: InputDecoration(
+                labelText: l10n.companyName,
+                hintText: l10n.companyNamePlaceholder,
+              ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _companyAddressController,
               maxLines: 3,
-              decoration: const InputDecoration(labelText: 'Company Address'),
+              decoration: InputDecoration(
+                labelText: l10n.companyAddress,
+                hintText: l10n.companyAddressPlaceholder,
+              ),
             ),
           ],
         ),
@@ -172,17 +180,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildFinanceDefaultsCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Defaults', style: Theme.of(context).textTheme.titleLarge),
+            Text(l10n.defaultsSection, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             TextField(
               controller: _currencySymbolController,
-              decoration: const InputDecoration(labelText: 'Currency Symbol'),
+              decoration: InputDecoration(labelText: l10n.currencySymbol),
             ),
             const SizedBox(height: 16),
             StreamBuilder<List<TaxRate>>(
@@ -197,7 +206,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   key: ValueKey(selected?.id),
                   initialValue: selected,
                   isExpanded: true,
-                  decoration: const InputDecoration(labelText: 'Default Tax Rate'),
+                  decoration: InputDecoration(labelText: l10n.defaultTaxRate),
                   items: rates.map((r) {
                     return DropdownMenuItem(value: r, child: Text('${r.name} (${r.rate.toStringAsFixed(2)}%)'));
                   }).toList(),
@@ -215,8 +224,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _demoMode,
               onChanged: (v) => setState(() => _demoMode = v),
               contentPadding: EdgeInsets.zero,
-              title: const Text('Demo Mode'),
-              subtitle: const Text('Seed sample categories and vendors for demo purposes.'),
+              title: Text(l10n.demoMode),
+              subtitle: Text(l10n.demoModeSubtitle),
             ),
           ],
         ),
@@ -225,18 +234,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildDataToolsCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Data Tools', style: Theme.of(context).textTheme.titleLarge),
+            Text(l10n.dataTools, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: _confirmFactoryReset,
               icon: const Icon(LucideIcons.trash2, size: 16, color: AppColors.destructive),
-              label: const Text('Factory Reset'),
+              label: Text(l10n.factoryReset),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.destructive,
                 side: const BorderSide(color: AppColors.destructive),

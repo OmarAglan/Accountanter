@@ -30,7 +30,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Document'),
+        title: Text(l10n.documentsDeleteTitle),
         content: Text(l10n.deleteConfirmation),
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.cancel)),
@@ -62,13 +62,13 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(l10n.documents, style: Theme.of(context).textTheme.headlineMedium),
-                Text('Store and link documents to your records.', style: Theme.of(context).textTheme.bodyMedium),
+                Text(l10n.documentsSubtitle, style: Theme.of(context).textTheme.bodyMedium),
               ],
             ),
             ElevatedButton.icon(
               onPressed: _openAdd,
               icon: const Icon(LucideIcons.plus, size: 16),
-              label: const Text('Add Document'),
+              label: Text(l10n.documentsAddDocument),
             ),
           ],
         ),
@@ -79,7 +79,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
             child: TextField(
               onChanged: (v) => setState(() => _searchTerm = v),
               decoration: InputDecoration(
-                hintText: 'Search documents…',
+                hintText: l10n.documentsSearchHint,
                 prefixIcon: const Icon(LucideIcons.search, size: 16),
                 isDense: true,
               ),
@@ -103,22 +103,22 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
               }).toList();
 
               if (docs.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: Center(child: Text('No documents yet.')),
+                return Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Center(child: Text(l10n.documentsEmpty)),
                 );
               }
 
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: DataTable(
-                  columns: const [
-                    DataColumn(label: Text('Title')),
-                    DataColumn(label: Text('Type')),
-                    DataColumn(label: Text('Linked To')),
-                    DataColumn(label: Text('Path')),
-                    DataColumn(label: Text('Uploaded')),
-                    DataColumn(label: Text('Actions')),
+                  columns: [
+                    DataColumn(label: Text(l10n.documentsTableTitle)),
+                    DataColumn(label: Text(l10n.documentsTableType)),
+                    DataColumn(label: Text(l10n.documentsTableLinkedTo)),
+                    DataColumn(label: Text(l10n.documentsTablePath)),
+                    DataColumn(label: Text(l10n.documentsTableUploaded)),
+                    DataColumn(label: Text(l10n.documentsTableActions)),
                   ],
                   rows: docs.map((d) {
                     final link = d.relatedEntityType == null ? '-' : '${d.relatedEntityType} #${d.relatedEntityId ?? ''}';

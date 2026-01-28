@@ -534,4 +534,288 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get print => 'طباعة';
+
+  @override
+  String get helpQuickHelpSubtitle => 'مساعدة سريعة لإصدار بيتا التجريبي.';
+
+  @override
+  String get helpGettingStartedTitle => 'البدء';
+
+  @override
+  String get helpGettingStartedBulletAddClient =>
+      'أضف عميلاً من العملاء → إضافة عميل جديد.';
+
+  @override
+  String get helpGettingStartedBulletCreateInvoice =>
+      'أنشئ فاتورة من الفواتير → فاتورة جديدة.';
+
+  @override
+  String get helpGettingStartedBulletTrackStock =>
+      'تابع المخزون في قسم المخزون وسجّل المصروفات عند حدوثها.';
+
+  @override
+  String get helpGettingStartedBulletRecordPayments =>
+      'سجّل مدفوعات الفواتير في المدفوعات لوضع الفواتير كمدفوعة.';
+
+  @override
+  String get helpBetaNotesTitle => 'ملاحظات بيتا';
+
+  @override
+  String get helpBetaNotesBulletLocalStorage =>
+      'تُحفظ كل البيانات محلياً على جهازك (SQLite).';
+
+  @override
+  String get helpBetaNotesBulletNoCloudSync =>
+      'لا تتوفر مزامنة سحابية في هذه النسخة التجريبية.';
+
+  @override
+  String get helpBetaNotesBulletDocumentsRegistry =>
+      'تُخزَّن المستندات كمسارات ملفات في سجل (لا يوجد منتقي ملفات حتى الآن).';
+
+  @override
+  String get helpKeyboardShortcutsTitle => 'اختصارات لوحة المفاتيح';
+
+  @override
+  String get helpKeyboardShortcutsBulletSearch =>
+      'استخدم شريط البحث العلوي للانتقال بسرعة بين الصفحات.';
+
+  @override
+  String get helpSupportTitle => 'الدعم';
+
+  @override
+  String get helpSupportBulletBugReport =>
+      'إذا واجهت خطأ، سجّل خطوات إعادة الإنتاج ولقطات الشاشة.';
+
+  @override
+  String get helpSupportBulletShareFeedback =>
+      'شارك ملاحظاتك عبر قناة/جهة اتصال البيتا.';
+
+  @override
+  String get helpTipDemoMode =>
+      'نصيحة: استخدم الإعدادات → وضع العرض التجريبي لإضافة بيانات نموذجية للاختبار.';
+
+  @override
+  String get documentsSubtitle => 'احفظ المستندات واربطها بسجلاتك.';
+
+  @override
+  String get documentsAddDocument => 'إضافة مستند';
+
+  @override
+  String get documentsSearchHint => 'ابحث عن المستندات…';
+
+  @override
+  String get documentsEmpty => 'لا توجد مستندات بعد.';
+
+  @override
+  String get documentsDeleteTitle => 'حذف مستند';
+
+  @override
+  String get documentsTableTitle => 'العنوان';
+
+  @override
+  String get documentsTableType => 'النوع';
+
+  @override
+  String get documentsTableLinkedTo => 'مرتبط بـ';
+
+  @override
+  String get documentsTablePath => 'المسار';
+
+  @override
+  String get documentsTableUploaded => 'تاريخ الرفع';
+
+  @override
+  String get documentsTableActions => 'إجراءات';
+
+  @override
+  String get documentsDialogAddTitle => 'إضافة مستند';
+
+  @override
+  String get documentsDialogEditTitle => 'تعديل مستند';
+
+  @override
+  String get documentsFieldTitleLabel => 'العنوان *';
+
+  @override
+  String get documentsFieldFileTypeLabel => 'نوع الملف *';
+
+  @override
+  String get documentsFieldFilePathLabel => 'مسار الملف *';
+
+  @override
+  String get documentsFieldRelatedToLabel => 'مرتبط بـ';
+
+  @override
+  String get documentsFieldRelatedEntityIdLabel => 'معرّف الكيان المرتبط';
+
+  @override
+  String get documentsRelatedNone => 'بدون';
+
+  @override
+  String get documentsRelatedInvoice => 'فاتورة';
+
+  @override
+  String get documentsRelatedExpense => 'مصروف';
+
+  @override
+  String get documentsRelatedClient => 'عميل';
+
+  @override
+  String get open => 'فتح';
+
+  @override
+  String get revealInFolder => 'إظهار في المجلد';
+
+  @override
+  String get copyPath => 'نسخ المسار';
+
+  @override
+  String get copiedToClipboard => 'تم النسخ إلى الحافظة.';
+
+  @override
+  String get fileNotFound => 'الملف غير موجود.';
+
+  @override
+  String get couldNotOpenFile => 'تعذّر فتح الملف.';
+
+  @override
+  String get operationNotSupported => 'هذا الإجراء غير مدعوم على هذه المنصة.';
+
+  @override
+  String fileSavedTo(Object path) {
+    return 'تم الحفظ في $path';
+  }
+
+  @override
+  String get reportsSubtitle => 'نظرة سريعة على الإيرادات والمصروفات والأرصدة المستحقة.';
+
+  @override
+  String get refresh => 'تحديث';
+
+  @override
+  String get reportRevenue12m => 'الإيرادات (12ش)';
+
+  @override
+  String get reportExpenses12m => 'المصروفات (12ش)';
+
+  @override
+  String get reportNet12m => 'الصافي (12ش)';
+
+  @override
+  String get reportInvoicesAll => 'الفواتير (الكل)';
+
+  @override
+  String get reportPaidRevenueByMonth => 'الإيرادات المدفوعة حسب الشهر';
+
+  @override
+  String get reportExpensesByMonth => 'المصروفات حسب الشهر';
+
+  @override
+  String get reportNoData => 'لا توجد بيانات.';
+
+  @override
+  String get reportMonth => 'الشهر';
+
+  @override
+  String get reportTotal => 'الإجمالي';
+
+  @override
+  String get settingsSubtitle => 'اضبط إعدادات الشركة الافتراضية وسلوك التطبيق.';
+
+  @override
+  String get settingsSaved => 'تم حفظ الإعدادات.';
+
+  @override
+  String get companySection => 'الشركة';
+
+  @override
+  String get companyName => 'اسم الشركة';
+
+  @override
+  String get companyAddress => 'عنوان الشركة';
+
+  @override
+  String get companyNamePlaceholder => 'اسم شركتك';
+
+  @override
+  String get companyAddressPlaceholder => '123 شارع الأعمال\nمدينة الأعمال، 12345';
+
+  @override
+  String get defaultsSection => 'الإعدادات الافتراضية';
+
+  @override
+  String get currencySymbol => 'رمز العملة';
+
+  @override
+  String get defaultTaxRate => 'نسبة الضريبة الافتراضية';
+
+  @override
+  String get demoMode => 'وضع العرض التجريبي';
+
+  @override
+  String get demoModeSubtitle => 'إضافة فئات وموردين نموذجيين لأغراض العرض.';
+
+  @override
+  String get dataTools => 'أدوات البيانات';
+
+  @override
+  String get factoryReset => 'إعادة ضبط المصنع';
+
+  @override
+  String get factoryResetTitle => 'إعادة ضبط المصنع؟';
+
+  @override
+  String get reset => 'إعادة ضبط';
+
+  @override
+  String get dataClearedTitle => 'تم مسح البيانات';
+
+  @override
+  String get dataClearedMessage =>
+      'تم مسح كل البيانات المحلية. أعد تشغيل التطبيق لإعادة التفعيل وتسجيل الدخول.';
+
+  @override
+  String get welcomeBack => 'مرحباً بعودتك';
+
+  @override
+  String get usernameOrEmail => 'اسم المستخدم أو البريد الإلكتروني';
+
+  @override
+  String get usernameRequired => 'اسم المستخدم مطلوب';
+
+  @override
+  String get password => 'كلمة المرور';
+
+  @override
+  String get passwordRequired => 'كلمة المرور مطلوبة';
+
+  @override
+  String get rememberMe => 'تذكرني';
+
+  @override
+  String get login => 'تسجيل الدخول';
+
+  @override
+  String get invalidUsernameOrPassword => 'اسم المستخدم أو كلمة المرور غير صحيحة.';
+
+  @override
+  String get activateAccountanter => 'تفعيل محاسب';
+
+  @override
+  String get activationSubtitle => 'أدخل مفتاح الترخيص وأنشئ حساب مستخدم محلياً.';
+
+  @override
+  String get licenseKey => 'مفتاح الترخيص';
+
+  @override
+  String get licenseKeyRequired => 'مفتاح الترخيص مطلوب';
+
+  @override
+  String get passwordMinChars => 'يجب ألا تقل كلمة المرور عن 6 أحرف';
+
+  @override
+  String get activateAndCreateUser => 'تفعيل وإنشاء مستخدم';
+
+  @override
+  String get invalidLicenseKey => 'مفتاح الترخيص غير صالح.';
 }

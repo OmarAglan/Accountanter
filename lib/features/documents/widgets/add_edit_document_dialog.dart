@@ -79,7 +79,7 @@ class _AddEditDocumentDialogState extends State<AddEditDocumentDialog> {
     final l10n = AppLocalizations.of(context)!;
 
     return AlertDialog(
-      title: Text(_isEditing ? 'Edit Document' : 'Add Document'),
+      title: Text(_isEditing ? l10n.documentsDialogEditTitle : l10n.documentsDialogAddTitle),
       content: Form(
         key: _formKey,
         child: SizedBox(
@@ -90,31 +90,31 @@ class _AddEditDocumentDialogState extends State<AddEditDocumentDialog> {
               children: [
                 TextFormField(
                   controller: _titleController,
-                  decoration: const InputDecoration(labelText: 'Title *'),
+                  decoration: InputDecoration(labelText: l10n.documentsFieldTitleLabel),
                   validator: (v) => (v == null || v.trim().isEmpty) ? l10n.fieldRequired : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _fileTypeController,
-                  decoration: const InputDecoration(labelText: 'File Type *'),
+                  decoration: InputDecoration(labelText: l10n.documentsFieldFileTypeLabel),
                   validator: (v) => (v == null || v.trim().isEmpty) ? l10n.fieldRequired : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _filePathController,
-                  decoration: const InputDecoration(labelText: 'File Path *'),
+                  decoration: InputDecoration(labelText: l10n.documentsFieldFilePathLabel),
                   validator: (v) => (v == null || v.trim().isEmpty) ? l10n.fieldRequired : null,
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String?>(
                   key: ValueKey(_relatedType),
                   initialValue: _relatedType,
-                  decoration: const InputDecoration(labelText: 'Related To'),
-                  items: const [
-                    DropdownMenuItem(value: null, child: Text('None')),
-                    DropdownMenuItem(value: 'Invoice', child: Text('Invoice')),
-                    DropdownMenuItem(value: 'Expense', child: Text('Expense')),
-                    DropdownMenuItem(value: 'Client', child: Text('Client')),
+                  decoration: InputDecoration(labelText: l10n.documentsFieldRelatedToLabel),
+                  items: [
+                    DropdownMenuItem(value: null, child: Text(l10n.documentsRelatedNone)),
+                    DropdownMenuItem(value: 'Invoice', child: Text(l10n.documentsRelatedInvoice)),
+                    DropdownMenuItem(value: 'Expense', child: Text(l10n.documentsRelatedExpense)),
+                    DropdownMenuItem(value: 'Client', child: Text(l10n.documentsRelatedClient)),
                   ],
                   onChanged: (value) => setState(() => _relatedType = value),
                 ),
@@ -124,7 +124,7 @@ class _AddEditDocumentDialogState extends State<AddEditDocumentDialog> {
                   enabled: _relatedType != null,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Related Entity ID'),
+                  decoration: InputDecoration(labelText: l10n.documentsFieldRelatedEntityIdLabel),
                 ),
               ],
             ),

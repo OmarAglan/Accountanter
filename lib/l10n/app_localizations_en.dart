@@ -539,4 +539,293 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get print => 'Print';
+
+  @override
+  String get helpQuickHelpSubtitle => 'Quick help for the beta starter edition.';
+
+  @override
+  String get helpGettingStartedTitle => 'Getting Started';
+
+  @override
+  String get helpGettingStartedBulletAddClient =>
+      'Add a client from Clients → Add New Client.';
+
+  @override
+  String get helpGettingStartedBulletCreateInvoice =>
+      'Create an invoice from Invoices → New Invoice.';
+
+  @override
+  String get helpGettingStartedBulletTrackStock =>
+      'Track stock in Inventory and record Expenses as they happen.';
+
+  @override
+  String get helpGettingStartedBulletRecordPayments =>
+      'Record invoice payments in Payments to mark invoices as Paid.';
+
+  @override
+  String get helpBetaNotesTitle => 'Beta Notes';
+
+  @override
+  String get helpBetaNotesBulletLocalStorage =>
+      'All data is stored locally on your device (SQLite).';
+
+  @override
+  String get helpBetaNotesBulletNoCloudSync =>
+      'No cloud sync is included in this beta.';
+
+  @override
+  String get helpBetaNotesBulletDocumentsRegistry =>
+      'Documents are stored as file paths in a registry (no file picker yet).';
+
+  @override
+  String get helpKeyboardShortcutsTitle => 'Keyboard Shortcuts';
+
+  @override
+  String get helpKeyboardShortcutsBulletSearch =>
+      'Use the top search bar to quickly jump between pages.';
+
+  @override
+  String get helpSupportTitle => 'Support';
+
+  @override
+  String get helpSupportBulletBugReport =>
+      'If you find a bug, capture steps to reproduce and screenshots.';
+
+  @override
+  String get helpSupportBulletShareFeedback =>
+      'Share feedback with your beta contact/channel.';
+
+  @override
+  String get helpTipDemoMode =>
+      'Tip: Use Settings → Demo Mode to seed sample categories for testing.';
+
+  @override
+  String get documentsSubtitle => 'Store and link documents to your records.';
+
+  @override
+  String get documentsAddDocument => 'Add Document';
+
+  @override
+  String get documentsSearchHint => 'Search documents…';
+
+  @override
+  String get documentsEmpty => 'No documents yet.';
+
+  @override
+  String get documentsDeleteTitle => 'Delete Document';
+
+  @override
+  String get documentsTableTitle => 'Title';
+
+  @override
+  String get documentsTableType => 'Type';
+
+  @override
+  String get documentsTableLinkedTo => 'Linked To';
+
+  @override
+  String get documentsTablePath => 'Path';
+
+  @override
+  String get documentsTableUploaded => 'Uploaded';
+
+  @override
+  String get documentsTableActions => 'Actions';
+
+  @override
+  String get documentsDialogAddTitle => 'Add Document';
+
+  @override
+  String get documentsDialogEditTitle => 'Edit Document';
+
+  @override
+  String get documentsFieldTitleLabel => 'Title *';
+
+  @override
+  String get documentsFieldFileTypeLabel => 'File Type *';
+
+  @override
+  String get documentsFieldFilePathLabel => 'File Path *';
+
+  @override
+  String get documentsFieldRelatedToLabel => 'Related To';
+
+  @override
+  String get documentsFieldRelatedEntityIdLabel => 'Related Entity ID';
+
+  @override
+  String get documentsRelatedNone => 'None';
+
+  @override
+  String get documentsRelatedInvoice => 'Invoice';
+
+  @override
+  String get documentsRelatedExpense => 'Expense';
+
+  @override
+  String get documentsRelatedClient => 'Client';
+
+  @override
+  String get open => 'Open';
+
+  @override
+  String get revealInFolder => 'Reveal in Folder';
+
+  @override
+  String get copyPath => 'Copy Path';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard.';
+
+  @override
+  String get fileNotFound => 'File not found.';
+
+  @override
+  String get couldNotOpenFile => 'Could not open file.';
+
+  @override
+  String get operationNotSupported =>
+      'This action is not supported on this platform.';
+
+  @override
+  String fileSavedTo(Object path) {
+    return 'Saved to $path';
+  }
+
+  @override
+  String get reportsSubtitle =>
+      'A quick overview of revenue, expenses, and outstanding balances.';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String get reportRevenue12m => 'Revenue (12m)';
+
+  @override
+  String get reportExpenses12m => 'Expenses (12m)';
+
+  @override
+  String get reportNet12m => 'Net (12m)';
+
+  @override
+  String get reportInvoicesAll => 'Invoices (All)';
+
+  @override
+  String get reportPaidRevenueByMonth => 'Paid Revenue by Month';
+
+  @override
+  String get reportExpensesByMonth => 'Expenses by Month';
+
+  @override
+  String get reportNoData => 'No data.';
+
+  @override
+  String get reportMonth => 'Month';
+
+  @override
+  String get reportTotal => 'Total';
+
+  @override
+  String get settingsSubtitle => 'Configure company defaults and app behavior.';
+
+  @override
+  String get settingsSaved => 'Settings saved.';
+
+  @override
+  String get companySection => 'Company';
+
+  @override
+  String get companyName => 'Company Name';
+
+  @override
+  String get companyAddress => 'Company Address';
+
+  @override
+  String get companyNamePlaceholder => 'Your Company Name';
+
+  @override
+  String get companyAddressPlaceholder =>
+      '123 Business Street\nBusiness City, BC 12345';
+
+  @override
+  String get defaultsSection => 'Defaults';
+
+  @override
+  String get currencySymbol => 'Currency Symbol';
+
+  @override
+  String get defaultTaxRate => 'Default Tax Rate';
+
+  @override
+  String get demoMode => 'Demo Mode';
+
+  @override
+  String get demoModeSubtitle =>
+      'Seed sample categories and vendors for demo purposes.';
+
+  @override
+  String get dataTools => 'Data Tools';
+
+  @override
+  String get factoryReset => 'Factory Reset';
+
+  @override
+  String get factoryResetTitle => 'Factory reset?';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get dataClearedTitle => 'Data cleared';
+
+  @override
+  String get dataClearedMessage =>
+      'All local data was cleared. Restart the app to re-activate and log in again.';
+
+  @override
+  String get welcomeBack => 'Welcome Back';
+
+  @override
+  String get usernameOrEmail => 'Username or Email';
+
+  @override
+  String get usernameRequired => 'Username is required';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get passwordRequired => 'Password is required';
+
+  @override
+  String get rememberMe => 'Remember Me';
+
+  @override
+  String get login => 'Login';
+
+  @override
+  String get invalidUsernameOrPassword => 'Invalid username or password.';
+
+  @override
+  String get activateAccountanter => 'Activate Accountanter';
+
+  @override
+  String get activationSubtitle =>
+      'Enter your license key and create your local user account.';
+
+  @override
+  String get licenseKey => 'License Key';
+
+  @override
+  String get licenseKeyRequired => 'License key is required';
+
+  @override
+  String get passwordMinChars => 'Password must be at least 6 characters';
+
+  @override
+  String get activateAndCreateUser => 'Activate and Create User';
+
+  @override
+  String get invalidLicenseKey => 'Invalid License Key.';
 }

@@ -14,47 +14,47 @@ class HelpScreen extends StatelessWidget {
       children: [
         Text(l10n.help, style: Theme.of(context).textTheme.headlineMedium),
         const SizedBox(height: 4),
-        Text('Quick help for the beta starter edition.', style: Theme.of(context).textTheme.bodyMedium),
+        Text(l10n.helpQuickHelpSubtitle, style: Theme.of(context).textTheme.bodyMedium),
         const SizedBox(height: 24),
         _buildCard(
           context,
-          title: 'Getting Started',
+          title: l10n.helpGettingStartedTitle,
           icon: LucideIcons.rocket,
-          children: const [
-            _Bullet('Add a client from Clients → Add New Client.'),
-            _Bullet('Create an invoice from Invoices → New Invoice.'),
-            _Bullet('Track stock in Inventory and record Expenses as they happen.'),
-            _Bullet('Record invoice payments in Payments to mark invoices as Paid.'),
+          children: [
+            _Bullet(l10n.helpGettingStartedBulletAddClient),
+            _Bullet(l10n.helpGettingStartedBulletCreateInvoice),
+            _Bullet(l10n.helpGettingStartedBulletTrackStock),
+            _Bullet(l10n.helpGettingStartedBulletRecordPayments),
           ],
         ),
         const SizedBox(height: 16),
         _buildCard(
           context,
-          title: 'Beta Notes',
+          title: l10n.helpBetaNotesTitle,
           icon: LucideIcons.flaskConical,
-          children: const [
-            _Bullet('All data is stored locally on your device (SQLite).'),
-            _Bullet('No cloud sync is included in this beta.'),
-            _Bullet('Documents are stored as file paths in a registry (no file picker yet).'),
+          children: [
+            _Bullet(l10n.helpBetaNotesBulletLocalStorage),
+            _Bullet(l10n.helpBetaNotesBulletNoCloudSync),
+            _Bullet(l10n.helpBetaNotesBulletDocumentsRegistry),
           ],
         ),
         const SizedBox(height: 16),
         _buildCard(
           context,
-          title: 'Keyboard Shortcuts',
+          title: l10n.helpKeyboardShortcutsTitle,
           icon: LucideIcons.keyboard,
-          children: const [
-            _Bullet('Use the top search bar to quickly jump between pages.'),
+          children: [
+            _Bullet(l10n.helpKeyboardShortcutsBulletSearch),
           ],
         ),
         const SizedBox(height: 16),
         _buildCard(
           context,
-          title: 'Support',
+          title: l10n.helpSupportTitle,
           icon: LucideIcons.lifeBuoy,
-          children: const [
-            _Bullet('If you find a bug, capture steps to reproduce and screenshots.'),
-            _Bullet('Share feedback with your beta contact/channel.'),
+          children: [
+            _Bullet(l10n.helpSupportBulletBugReport),
+            _Bullet(l10n.helpSupportBulletShareFeedback),
           ],
         ),
         const SizedBox(height: 16),
@@ -67,7 +67,7 @@ class HelpScreen extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Tip: Use Settings → Demo Mode to seed sample categories for testing.',
+                    l10n.helpTipDemoMode,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
