@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:accountanter/l10n/app_localizations.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:accountanter/theme/app_colors.dart';
+import 'package:accountanter/features/main/app_shell_scope.dart';
 
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final String userName;
+  final String subtitle;
 
-  const AppHeader({super.key, required this.userName});
+  const AppHeader({
+    super.key,
+    required this.userName,
+    required this.subtitle,
+  });
 
   String getGreeting(BuildContext context) {
     final hour = DateTime.now().hour;
@@ -19,6 +25,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final actions = AppShellScope.of(context);
 
     return Container(
       height: 72,
@@ -40,7 +47,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                 style: textTheme.headlineSmall?.copyWith(fontSize: 20),
               ),
               Text(
-                AppLocalizations.of(context)!.dashboardSubtitle,
+                subtitle,
                 style: textTheme.bodyMedium,
               ),
             ],
@@ -53,6 +60,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
               SizedBox(
                 width: 320,
                 child: TextField(
+                  readOnly: true,
+                  onTap: actions.openSearch,
                   decoration: InputDecoration(
                     hintText: AppLocalizations.of(context)!.searchPlaceholder,
                     prefixIcon: const Icon(LucideIcons.search, size: 16),
@@ -75,7 +84,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
               // Notifications
               IconButton(
                 icon: const Icon(LucideIcons.bell),
-                onPressed: () {},
+                onPressed: actions.openNotifications,
                 color: AppColors.mutedForeground,
               ),
               const SizedBox(width: 16),
@@ -96,7 +105,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('$userName Doe', style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500)),
+                      Text(userName, style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500)),
                       Text(AppLocalizations.of(context)!.owner, style: textTheme.bodyMedium),
                     ],
                   )

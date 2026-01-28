@@ -40,6 +40,10 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
   
   bool get _isEditing => widget.invoiceId != null;
   bool _isLoading = true;
+  String _currencySymbol = '\$';
+  String _companyName = 'Your Company Name';
+  String _companyAddress = '123 Business Street\nBusiness City, BC 12345';
+  double _taxRatePercent = 10.0;
 
   Client? _selectedClient;
   late TextEditingController _invoiceNumberController;
@@ -58,6 +62,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
     _dueDateController = TextEditingController();
     _notesController = TextEditingController();
 
+    _loadDefaults();
     if (_isEditing) {
       _loadInvoiceData();
     } else {
@@ -66,6 +71,21 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
       _addLineItem();
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _loadDefaults() async {
+    final companyName = await _database.getSettingString('company.name');
+    final companyAddress = await _database.getSettingString('company.address');
+    final currencySymbol = await _database.getSettingString('currency.symbol');
+    final defaultTaxRate = await _database.getDefaultTaxRate();
+
+    if (!mounted) return;
+    setState(() {
+      _companyName = (companyName == null || companyName.trim().isEmpty) ? _companyName : companyName.trim();
+      _companyAddress = (companyAddress == null || companyAddress.trim().isEmpty) ? _companyAddress : companyAddress.trim();
+      _currencySymbol = (currencySymbol == null || currencySymbol.trim().isEmpty) ? _currencySymbol : currencySymbol.trim();
+      _taxRatePercent = defaultTaxRate?.rate ?? _taxRatePercent;
+    });
   }
 
   Future<void> _loadInvoiceData() async {
@@ -153,7 +173,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
     }
     
     final subtotal = _calculateSubtotal();
-    final tax = subtotal * 0.1; // Placeholder 10% tax
+    final tax = subtotal * (_taxRatePercent / 100.0);
     final total = subtotal + tax;
 
     final invoiceCompanion = InvoicesCompanion(
@@ -293,8 +313,8 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
           children: [
             Text('From', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 12),
-            const Text('Your Company Name', style: TextStyle(fontWeight: FontWeight.bold)),
-            const Text('123 Business Street\nBusiness City, BC 12345'),
+            Text(_companyName, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(_companyAddress),
           ],
         ),
       ),
@@ -440,14 +460,14 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
             textAlign: TextAlign.right,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-            decoration: const InputDecoration(isDense: true, prefixText: '\$'),
+            decoration: InputDecoration(isDense: true, prefixText: _currencySymbol),
             validator: (v) => (v == null || v.isEmpty || double.tryParse(v) == null) ? '!' : null,
           )),
           const SizedBox(width: 8),
           Expanded(flex: 2, child: Padding(
             padding: const EdgeInsets.only(top: 12.0),
             child: Text(
-              NumberFormat.currency(symbol: '\$').format(total),
+              NumberFormat.currency(symbol: _currencySymbol).format(total),
               textAlign: TextAlign.right,
               style: const TextStyle(fontFamily: 'monospace'),
             ),
@@ -463,8 +483,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
 
   Widget _buildSummaryAndNotes() {
     final subtotal = _calculateSubtotal();
-    const taxRate = 0.1; // Placeholder 10% tax
-    final tax = subtotal * taxRate;
+    final tax = subtotal * (_taxRatePercent / 100.0);
     final total = subtotal + tax;
 
     return LayoutBuilder(
@@ -518,7 +537,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
             Text('Summary', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             _buildSummaryRow('${AppLocalizations.of(context)!.subtotal}:', subtotal),
-            _buildSummaryRow('${AppLocalizations.of(context)!.tax} (10%):', tax),
+            _buildSummaryRow('${AppLocalizations.of(context)!.tax} (${_taxRatePercent.toStringAsFixed(0)}%):', tax),
             const Divider(height: 24),
             _buildSummaryRow('${AppLocalizations.of(context)!.total}:', total, isTotal: true),
           ],
@@ -538,7 +557,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: isTotal ? const TextStyle(fontWeight: FontWeight.bold) : null),
-          Text(NumberFormat.currency(symbol: '\$').format(amount), style: style),
+          Text(NumberFormat.currency(symbol: _currencySymbol).format(amount), style: style),
         ],
       ),
     );

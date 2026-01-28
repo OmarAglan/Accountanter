@@ -286,6 +286,187 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteRecurringInvoice(int id) =>
       (delete(recurringInvoices)..where((i) => i.id.equals(id))).go();
 
+  // --- Payment Methods ---
+  Stream<List<PaymentWithInvoiceAndClient>> watchAllPaymentsWithInvoiceAndClient() {
+    final query = select(payments).join([
+      innerJoin(invoices, invoices.id.equalsExp(payments.invoiceId)),
+      innerJoin(clients, clients.id.equalsExp(invoices.clientId)),
+    ]);
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        return PaymentWithInvoiceAndClient(
+          payment: row.readTable(payments),
+          invoice: row.readTable(invoices),
+          client: row.readTable(clients),
+        );
+      }).toList();
+    });
+  }
+
+  Future<int> insertPayment(PaymentsCompanion payment) {
+    return transaction(() async {
+      final paymentId = await into(payments).insert(payment);
+      await _recalculateInvoicePaymentStatus(payment.invoiceId.value);
+      return paymentId;
+    });
+  }
+
+  Future<bool> updatePayment(PaymentsCompanion payment) {
+    return transaction(() async {
+      final ok = await update(payments).replace(payment);
+      await _recalculateInvoicePaymentStatus(payment.invoiceId.value);
+      return ok;
+    });
+  }
+
+  Future<int> deletePayment(int paymentId) {
+    return transaction(() async {
+      final existing = await (select(payments)..where((p) => p.id.equals(paymentId))).getSingleOrNull();
+      if (existing == null) return 0;
+      final invoiceId = existing.invoiceId;
+      final deleted = await (delete(payments)..where((p) => p.id.equals(paymentId))).go();
+      await _recalculateInvoicePaymentStatus(invoiceId);
+      return deleted;
+    });
+  }
+
+  Future<void> _recalculateInvoicePaymentStatus(int invoiceId) async {
+    final invoice = await (select(invoices)..where((i) => i.id.equals(invoiceId))).getSingleOrNull();
+    if (invoice == null) return;
+
+    final paidExpr = payments.amount.sum();
+    final paidQuery = selectOnly(payments)
+      ..addColumns([paidExpr])
+      ..where(payments.invoiceId.equals(invoiceId));
+    final paid = await paidQuery.map((row) => row.read(paidExpr) ?? 0.0).getSingle();
+
+    String? nextStatus;
+    if (paid >= invoice.totalAmount && invoice.status != 'Paid') {
+      nextStatus = 'Paid';
+    } else if (paid > 0 && invoice.status == 'Draft') {
+      nextStatus = 'Pending';
+    } else if (paid < invoice.totalAmount && invoice.status == 'Paid') {
+      nextStatus = 'Pending';
+    }
+
+    if (nextStatus != null) {
+      await (update(invoices)..where((i) => i.id.equals(invoiceId))).write(InvoicesCompanion(status: Value(nextStatus)));
+    }
+  }
+
+  // --- Tax Rate Methods ---
+  Stream<List<TaxRate>> watchAllTaxRates() {
+    return (select(taxRates)
+          ..orderBy([
+            (t) => OrderingTerm.desc(t.isDefault),
+            (t) => OrderingTerm.desc(t.createdAt),
+          ]))
+        .watch();
+  }
+
+  Future<int> insertTaxRate(TaxRatesCompanion entry) => into(taxRates).insert(entry);
+  Future<bool> updateTaxRate(TaxRatesCompanion entry) => update(taxRates).replace(entry);
+  Future<int> deleteTaxRate(int id) => (delete(taxRates)..where((t) => t.id.equals(id))).go();
+
+  Future<void> setDefaultTaxRate(int id) {
+    return transaction(() async {
+      await (update(taxRates)).write(const TaxRatesCompanion(isDefault: Value(false)));
+      await (update(taxRates)..where((t) => t.id.equals(id))).write(const TaxRatesCompanion(isDefault: Value(true)));
+    });
+  }
+
+  Future<TaxRate?> getDefaultTaxRate() {
+    return (select(taxRates)..where((t) => t.isDefault.equals(true))).getSingleOrNull();
+  }
+
+  // --- Document Methods ---
+  Stream<List<Document>> watchAllDocuments() {
+    return (select(documents)..orderBy([(d) => OrderingTerm.desc(d.uploadDate)])).watch();
+  }
+
+  Future<int> insertDocument(DocumentsCompanion entry) => into(documents).insert(entry);
+  Future<bool> updateDocument(DocumentsCompanion entry) => update(documents).replace(entry);
+  Future<int> deleteDocument(int id) => (delete(documents)..where((d) => d.id.equals(id))).go();
+
+  // --- Settings Methods ---
+  Future<SettingsEntry?> getSettingEntry(String key) {
+    return (select(settingsEntries)..where((s) => s.key.equals(key))).getSingleOrNull();
+  }
+
+  Future<void> setSettingEntry(SettingsEntriesCompanion entry) {
+    return into(settingsEntries).insert(entry, mode: InsertMode.insertOrReplace);
+  }
+
+  Future<String?> getSettingString(String key) async {
+    final entry = await getSettingEntry(key);
+    if (entry == null) return null;
+    return entry.value;
+  }
+
+  Future<void> setSettingString(String key, String value) {
+    return setSettingEntry(SettingsEntriesCompanion(
+      key: Value(key),
+      value: Value(value),
+      type: const Value('string'),
+    ));
+  }
+
+  Future<double?> getSettingDouble(String key) async {
+    final v = await getSettingString(key);
+    if (v == null) return null;
+    return double.tryParse(v);
+  }
+
+  Future<void> setSettingDouble(String key, double value) {
+    return setSettingString(key, value.toString());
+  }
+
+  Future<bool?> getSettingBool(String key) async {
+    final v = await getSettingString(key);
+    if (v == null) return null;
+    if (v.toLowerCase() == 'true') return true;
+    if (v.toLowerCase() == 'false') return false;
+    return null;
+  }
+
+  Future<void> setSettingBool(String key, bool value) {
+    return setSettingString(key, value.toString());
+  }
+
+  // --- Report Methods ---
+  Future<List<MonthlyTotal>> getPaidRevenueByMonth({int monthsBack = 12}) async {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month - (monthsBack - 1), 1);
+    final paidInvoices = await (select(invoices)
+          ..where((i) => i.status.equals('Paid') & i.issueDate.isBiggerOrEqualValue(start)))
+        .get();
+
+    final Map<MonthKey, double> totals = {};
+    for (final inv in paidInvoices) {
+      final key = MonthKey(inv.issueDate.year, inv.issueDate.month);
+      totals[key] = (totals[key] ?? 0.0) + inv.totalAmount;
+    }
+    final sortedKeys = totals.keys.toList()
+      ..sort((a, b) => a.compareTo(b));
+    return sortedKeys.map((k) => MonthlyTotal(year: k.year, month: k.month, total: totals[k] ?? 0.0)).toList();
+  }
+
+  Future<List<MonthlyTotal>> getExpensesByMonth({int monthsBack = 12}) async {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month - (monthsBack - 1), 1);
+    final all = await (select(expenses)..where((e) => e.date.isBiggerOrEqualValue(start))).get();
+
+    final Map<MonthKey, double> totals = {};
+    for (final e in all) {
+      final key = MonthKey(e.date.year, e.date.month);
+      totals[key] = (totals[key] ?? 0.0) + e.amount;
+    }
+    final sortedKeys = totals.keys.toList()
+      ..sort((a, b) => a.compareTo(b));
+    return sortedKeys.map((k) => MonthlyTotal(year: k.year, month: k.month, total: totals[k] ?? 0.0)).toList();
+  }
+
   // --- Auth & System Methods ---
   Future<License?> getLicense() =>
       (select(licenses)..where((l) => l.id.equals(1))).getSingleOrNull();
@@ -319,6 +500,39 @@ class RecurringInvoiceWithClient {
   final RecurringInvoice recurringInvoice;
   final Client client;
   RecurringInvoiceWithClient({required this.recurringInvoice, required this.client});
+}
+
+class PaymentWithInvoiceAndClient {
+  final Payment payment;
+  final Invoice invoice;
+  final Client client;
+  PaymentWithInvoiceAndClient({required this.payment, required this.invoice, required this.client});
+}
+
+class MonthKey implements Comparable<MonthKey> {
+  final int year;
+  final int month;
+  const MonthKey(this.year, this.month);
+
+  @override
+  int compareTo(MonthKey other) {
+    final c = year.compareTo(other.year);
+    if (c != 0) return c;
+    return month.compareTo(other.month);
+  }
+
+  @override
+  bool operator ==(Object other) => other is MonthKey && other.year == year && other.month == month;
+
+  @override
+  int get hashCode => Object.hash(year, month);
+}
+
+class MonthlyTotal {
+  final int year;
+  final int month;
+  final double total;
+  MonthlyTotal({required this.year, required this.month, required this.total});
 }
 
 enum ActivityType { invoice, client, expense }
