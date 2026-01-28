@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:accountanter/data/database.dart';
-import 'package:accountanter/l10n/app_localizations.dart';
 
 class AddEditRecurringInvoiceDialog extends StatefulWidget {
   final RecurringInvoice? recurringInvoice;

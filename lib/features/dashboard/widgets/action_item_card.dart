@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:accountanter/theme/app_colors.dart';
 
 class ActionItemCard extends StatelessWidget {
   final IconData icon;

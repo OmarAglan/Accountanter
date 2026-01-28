@@ -485,6 +485,9 @@ class AppDatabase extends _$AppDatabase {
       into(licenses).insert(license, mode: InsertMode.replace);
   Future<User?> getLocalUser() => (select(users)).getSingleOrNull();
   Future<void> createLocalUser(UsersCompanion user) => into(users).insert(user);
+  Future<void> updateLocalUserPasswordHash(int id, String passwordHash) {
+    return (update(users)..where((u) => u.id.equals(id))).write(UsersCompanion(passwordHash: Value(passwordHash)));
+  }
   Future<void> factoryReset() async {
     return transaction(() async {
       for (final table in allTables) {
