@@ -33,22 +33,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get help => 'المساعدة';
 
   @override
-  String get recurring => 'Recurring';
+  String get recurring => 'المتكرر';
 
   @override
-  String get payments => 'Payments';
+  String get payments => 'المدفوعات';
 
   @override
-  String get taxes => 'Taxes';
+  String get taxes => 'الضرائب';
 
   @override
-  String get currency => 'Currency';
+  String get currency => 'العملة';
 
   @override
-  String get documents => 'Documents';
+  String get documents => 'المستندات';
 
   @override
-  String get reports => 'Reports';
+  String get reports => 'التقارير';
+
+  @override
+  String get notifications => 'الإشعارات';
 
   @override
   String get logout => 'تسجيل الخروج';

@@ -100,7 +100,7 @@ class AppSidebar extends StatelessWidget {
           foregroundColor: isActive ? AppColors.sidebarPrimaryForeground : AppColors.sidebarForeground,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          alignment: Alignment.centerLeft,
+          alignment: AlignmentDirectional.centerStart,
         ),
         onPressed: () => onPageSelected(page),
         child: Row(
@@ -138,7 +138,7 @@ class AppSidebar extends StatelessWidget {
           foregroundColor: isActive ? AppColors.sidebarPrimaryForeground : AppColors.sidebarForeground,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          alignment: Alignment.centerLeft,
+          alignment: AlignmentDirectional.centerStart,
         ),
         onPressed: onTap,
         child: Row(
@@ -162,7 +162,7 @@ class AppSidebar extends StatelessWidget {
           foregroundColor: AppColors.sidebarForeground,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          alignment: Alignment.centerLeft,
+          alignment: AlignmentDirectional.centerStart,
         ),
         onPressed: onLogout,
         child: Row(

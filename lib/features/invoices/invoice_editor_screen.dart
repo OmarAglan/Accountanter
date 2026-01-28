@@ -91,6 +91,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
 
   Future<void> _loadInvoiceData() async {
     final details = await _database.getInvoiceDetails(widget.invoiceId!);
+    if (!mounted) return;
     if (details != null) {
       setState(() {
         _selectedClient = details.client;
@@ -110,6 +111,8 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
         }
         _isLoading = false;
       });
+    } else {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -149,6 +152,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
+    if (!mounted) return;
     if (picked != null) {
       setState(() {
         if (isIssueDate) {
@@ -403,8 +407,8 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
               children: [
                 Expanded(flex: 4, child: Text(AppLocalizations.of(context)!.description, style: const TextStyle(fontWeight: FontWeight.bold))),
                 Expanded(flex: 1, child: Text(AppLocalizations.of(context)!.quantity, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
-                Expanded(flex: 2, child: Text(AppLocalizations.of(context)!.price, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
-                Expanded(flex: 2, child: Text(AppLocalizations.of(context)!.total, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                Expanded(flex: 2, child: Text(AppLocalizations.of(context)!.price, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.end)),
+                Expanded(flex: 2, child: Text(AppLocalizations.of(context)!.total, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.end)),
                 const SizedBox(width: 48),
               ],
             ),
@@ -511,7 +515,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
           Expanded(flex: 2, child: TextFormField(
             controller: controllers.unitPriceController,
             onChanged: (_) => _updateTotals(),
-            textAlign: TextAlign.right,
+            textAlign: TextAlign.end,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
             decoration: InputDecoration(isDense: true, prefixText: _currencySymbol),
@@ -522,7 +526,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
             padding: const EdgeInsets.only(top: 12.0),
             child: Text(
               NumberFormat.currency(symbol: _currencySymbol).format(total),
-              textAlign: TextAlign.right,
+              textAlign: TextAlign.end,
               style: const TextStyle(fontFamily: 'monospace'),
             ),
           )),

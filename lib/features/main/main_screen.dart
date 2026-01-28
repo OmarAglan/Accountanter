@@ -162,9 +162,9 @@ class _MainScreenState extends State<MainScreen> {
       builder: (context) {
         final l10n = AppLocalizations.of(context)!;
         return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
+          padding: EdgeInsetsDirectional.only(
+            start: 16,
+            end: 16,
             top: 16,
             bottom: MediaQuery.of(context).viewInsets.bottom + 16,
           ),
@@ -189,7 +189,7 @@ class _MainScreenState extends State<MainScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Notifications', style: Theme.of(context).textTheme.titleLarge),
+                  Text(l10n.notifications, style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 12),
                   Flexible(
                     child: ListView.separated(

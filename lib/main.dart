@@ -43,16 +43,19 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _initializeApp() async {
     final isActivated = await _authService.isAppActivated();
+    if (!mounted) return;
     if (!isActivated) {
       setState(() => _status = AppStatus.unactivated);
       return;
     }
 
     final rememberedUser = await _authService.getLoggedInUser();
+    if (!mounted) return;
     if (rememberedUser != null) {
       setState(() => _status = AppStatus.loggedIn);
     } else {
       final user = await _authService.database.getLocalUser();
+      if (!mounted) return;
       setState(() {
         _prefilledUsername = user?.username;
         _status = AppStatus.loggedOut;

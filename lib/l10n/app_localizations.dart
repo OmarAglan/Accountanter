@@ -182,6 +182,12 @@ abstract class AppLocalizations {
   /// **'Reports'**
   String get reports;
 
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
   /// No description provided for @logout.
   ///
   /// In en, this message translates to:

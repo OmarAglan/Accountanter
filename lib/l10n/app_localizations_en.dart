@@ -51,6 +51,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reports => 'Reports';
 
   @override
+  String get notifications => 'Notifications';
+
+  @override
   String get logout => 'Logout';
 
   @override
