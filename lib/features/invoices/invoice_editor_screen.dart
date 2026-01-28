@@ -164,7 +164,8 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
   Future<void> _handleSave(String status) async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedClient == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.pleaseSelect + ' ' + AppLocalizations.of(context)!.client)));
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${l10n.pleaseSelect} ${l10n.client}')));
       return;
     }
     if (_lineItemControllers.isEmpty) {

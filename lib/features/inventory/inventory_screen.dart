@@ -239,7 +239,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       decoration: BoxDecoration(
         border: Border.all(color: color),
         borderRadius: BorderRadius.circular(6),
-        color: color.withOpacity(0.05),
+        color: color.withAlpha(13),
       ),
       child: Row(
         children: [
@@ -354,7 +354,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
     final statusChip = Chip(
       label: Text(status),
-      backgroundColor: statusColor.withOpacity(0.1),
+      backgroundColor: statusColor.withAlpha(26),
       labelStyle: TextStyle(color: statusColor, fontWeight: FontWeight.w500),
       padding: const EdgeInsets.symmetric(horizontal: 8),
       visualDensity: VisualDensity.compact,

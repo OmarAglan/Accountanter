@@ -270,7 +270,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     }
     return Chip(
       label: Text(status),
-      backgroundColor: color.withOpacity(0.1),
+      backgroundColor: color.withAlpha(26),
       labelStyle: TextStyle(color: color, fontWeight: FontWeight.w500),
       padding: const EdgeInsets.symmetric(horizontal: 8),
       visualDensity: VisualDensity.compact,

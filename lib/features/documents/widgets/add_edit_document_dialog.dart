@@ -107,7 +107,8 @@ class _AddEditDocumentDialogState extends State<AddEditDocumentDialog> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String?>(
-                  value: _relatedType,
+                  key: ValueKey(_relatedType),
+                  initialValue: _relatedType,
                   decoration: const InputDecoration(labelText: 'Related To'),
                   items: const [
                     DropdownMenuItem(value: null, child: Text('None')),
@@ -137,4 +138,3 @@ class _AddEditDocumentDialogState extends State<AddEditDocumentDialog> {
     );
   }
 }
-

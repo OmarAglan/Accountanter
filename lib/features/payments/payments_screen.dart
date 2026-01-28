@@ -52,7 +52,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Payment'),
-        content: Text('${l10n.deleteConfirmation}'),
+        content: Text(l10n.deleteConfirmation),
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.cancel)),
           TextButton(

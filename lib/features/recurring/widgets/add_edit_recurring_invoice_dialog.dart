@@ -105,7 +105,8 @@ class _AddEditRecurringInvoiceDialogState extends State<AddEditRecurringInvoiceD
                       children: [
                         Expanded(
                           child: DropdownButtonFormField<int>(
-                            value: _selectedClientId,
+                            key: ValueKey(_selectedClientId),
+                            initialValue: _selectedClientId,
                             decoration: const InputDecoration(labelText: 'Client'),
                             items: clients.map((c) => DropdownMenuItem(
                               value: c.id,
@@ -118,7 +119,8 @@ class _AddEditRecurringInvoiceDialogState extends State<AddEditRecurringInvoiceD
                         const SizedBox(width: 16),
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: _selectedFrequency,
+                            key: ValueKey(_selectedFrequency),
+                            initialValue: _selectedFrequency,
                             decoration: const InputDecoration(labelText: 'Frequency'),
                             items: ['Weekly', 'Monthly', 'Quarterly', 'Yearly']
                                 .map((f) => DropdownMenuItem(value: f, child: Text(f)))

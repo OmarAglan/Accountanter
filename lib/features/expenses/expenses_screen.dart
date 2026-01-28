@@ -350,7 +350,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
 
     final statusChip = Chip(
       label: Text(expense.status),
-      backgroundColor: _getStatusColor(expense.status).withOpacity(0.1),
+      backgroundColor: _getStatusColor(expense.status).withAlpha(26),
       labelStyle: TextStyle(color: _getStatusColor(expense.status), fontWeight: FontWeight.w500),
       padding: const EdgeInsets.symmetric(horizontal: 8),
       visualDensity: VisualDensity.compact,

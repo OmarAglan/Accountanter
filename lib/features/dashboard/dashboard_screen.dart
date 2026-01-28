@@ -196,7 +196,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
+        color: color.withAlpha(13),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -312,7 +312,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     leading: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
+                        color: color.withAlpha(26),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(_getActivityIcon(activity.type), color: color, size: 20),

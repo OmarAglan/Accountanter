@@ -268,7 +268,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
       DataCell(
         Chip(
           label: Text(client.type),
-          backgroundColor: client.type == 'Debtor' ? AppColors.info.withOpacity(0.1) : AppColors.accent.withOpacity(0.1),
+          backgroundColor: client.type == 'Debtor' ? AppColors.info.withAlpha(26) : AppColors.accent.withAlpha(26),
           labelStyle: TextStyle(color: client.type == 'Debtor' ? AppColors.info : AppColors.accent, fontWeight: FontWeight.w500),
           padding: const EdgeInsets.symmetric(horizontal: 8),
           visualDensity: VisualDensity.compact,
