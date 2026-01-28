@@ -29,11 +29,13 @@ class _AddEditPaymentDialogState extends State<AddEditPaymentDialog> {
   final TextEditingController _referenceController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
   String _method = 'Cash';
+  String _currencySymbol = '\$';
 
   @override
   void initState() {
     super.initState();
     _dateController.text = DateFormat('yyyy-MM-dd').format(_date);
+    _loadCurrencySymbol();
 
     final existing = widget.payment;
     if (existing != null) {
@@ -45,6 +47,12 @@ class _AddEditPaymentDialogState extends State<AddEditPaymentDialog> {
       _method = existing.payment.method;
       _selectedInvoice = InvoiceWithClient(invoice: existing.invoice, client: existing.client);
     }
+  }
+
+  Future<void> _loadCurrencySymbol() async {
+    final symbol = await _database.getCurrencySymbol();
+    if (!mounted) return;
+    setState(() => _currencySymbol = symbol);
   }
 
   @override
@@ -146,7 +154,7 @@ class _AddEditPaymentDialogState extends State<AddEditPaymentDialog> {
                 TextFormField(
                   controller: _amountController,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(labelText: '${l10n.amount} *', prefixText: '\$'),
+                  decoration: InputDecoration(labelText: '${l10n.amount} *', prefixText: _currencySymbol),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) return l10n.fieldRequired;
                     final n = double.tryParse(v);
@@ -192,4 +200,3 @@ class _AddEditPaymentDialogState extends State<AddEditPaymentDialog> {
     );
   }
 }
-

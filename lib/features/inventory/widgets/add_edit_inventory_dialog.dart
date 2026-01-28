@@ -32,6 +32,7 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
   List<Category> _categories = [];
   List<Supplier> _suppliers = [];
   bool _isLoading = true;
+  String _currencySymbol = '\$';
 
   bool get _isEditing => widget.item != null;
 
@@ -45,10 +46,12 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
     // In a real app, you might want to fetch these based on type, e.g., 'inventory'
     final cats = await (_database.select(_database.categories)).get();
     final sups = await (_database.select(_database.suppliers)).get();
+    final currencySymbol = await _database.getCurrencySymbol();
 
     setState(() {
       _categories = cats;
       _suppliers = sups;
+      _currencySymbol = currencySymbol;
       
       if (_isEditing) {
         final item = widget.item!;
@@ -215,7 +218,7 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
   Widget _buildPriceField() {
     return TextFormField(
       controller: _unitPriceController,
-      decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.unitPrice} *', prefixText: '\$'),
+      decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.unitPrice} *', prefixText: _currencySymbol),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
       validator: (v) {

@@ -23,6 +23,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Future<_ReportData> _load() async {
+    final currencySymbol = await _database.getCurrencySymbol();
     final revenueByMonth = await _database.getPaidRevenueByMonth(monthsBack: 12);
     final expensesByMonth = await _database.getExpensesByMonth(monthsBack: 12);
     final receivables = await _database.getTotalReceivables();
@@ -33,6 +34,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final pending = invoices.where((i) => i.status == 'Pending').length;
     final paid = invoices.where((i) => i.status == 'Paid').length;
     return _ReportData(
+      currencySymbol: currencySymbol,
       revenueByMonth: revenueByMonth,
       expensesByMonth: expensesByMonth,
       receivables: receivables,
@@ -47,7 +49,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final currency = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
     return FutureBuilder<_ReportData>(
       future: _future,
@@ -56,6 +57,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         final data = snapshot.data!;
+        final currency = NumberFormat.currency(symbol: data.currencySymbol, decimalDigits: 2);
 
         final revenueTotal = data.revenueByMonth.fold<double>(0.0, (s, m) => s + m.total);
         final expenseTotal = data.expensesByMonth.fold<double>(0.0, (s, m) => s + m.total);
@@ -232,6 +234,7 @@ class _ReportCard extends StatelessWidget {
 }
 
 class _ReportData {
+  final String currencySymbol;
   final List<MonthlyTotal> revenueByMonth;
   final List<MonthlyTotal> expensesByMonth;
   final double receivables;
@@ -242,6 +245,7 @@ class _ReportData {
   final int paidInvoices;
 
   _ReportData({
+    required this.currencySymbol,
     required this.revenueByMonth,
     required this.expensesByMonth,
     required this.receivables,

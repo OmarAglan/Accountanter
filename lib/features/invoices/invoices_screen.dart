@@ -20,6 +20,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
   String _searchTerm = '';
   late TabController _tabController;
   late List<String> _tabs;
+  String _currencySymbol = '\$';
 
   @override
   void initState() {
@@ -27,6 +28,13 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     _tabs = ['All', 'Paid', 'Pending', 'Overdue', 'Draft'];
     _tabController = TabController(length: _tabs.length, vsync: this);
     _invoicesStream = _database.watchAllInvoicesWithClient();
+    _loadCurrencySymbol();
+  }
+
+  Future<void> _loadCurrencySymbol() async {
+    final symbol = await _database.getCurrencySymbol();
+    if (!mounted) return;
+    setState(() => _currencySymbol = symbol);
   }
 
   @override
@@ -134,7 +142,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     final totalRevenue = invoices.where((i) => i.invoice.status == 'Paid').fold(0.0, (sum, i) => sum + i.invoice.totalAmount);
     final pendingRevenue = invoices.where((i) => i.invoice.status == 'Pending').fold(0.0, (sum, i) => sum + i.invoice.totalAmount);
     final overdueRevenue = invoices.where((i) => i.invoice.status == 'Overdue').fold(0.0, (sum, i) => sum + i.invoice.totalAmount);
-    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final currencyFormat = NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -225,7 +233,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
   }
 
   DataRow _buildDataRow(InvoiceWithClient iwc) {
-    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final currencyFormat = NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
     final dateFormat = DateFormat('MMM d, yyyy');
     
     return DataRow(cells: [

@@ -21,11 +21,19 @@ class _ClientsScreenState extends State<ClientsScreen> {
   late Stream<List<Client>> _clientsStream;
   String _searchTerm = '';
   String _filterType = 'All Clients';
+  String _currencySymbol = '\$';
 
   @override
   void initState() {
     super.initState();
     _clientsStream = _database.watchAllClients();
+    _loadCurrencySymbol();
+  }
+
+  Future<void> _loadCurrencySymbol() async {
+    final symbol = await _database.getCurrencySymbol();
+    if (!mounted) return;
+    setState(() => _currencySymbol = symbol);
   }
   
   void _showAddClientDialog() {
@@ -153,7 +161,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
     final totalPayables = clients.where((c) => c.balance < 0).fold(0.0, (sum, c) => sum + c.balance.abs());
     final debtors = clients.where((c) => c.type == 'Debtor').length;
     final creditors = clients.where((c) => c.type == 'Creditor').length;
-    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final currencyFormat = NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
 
 
     return LayoutBuilder(
@@ -252,7 +260,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
   }
 
   DataRow _buildDataRow(Client client) {
-    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final currencyFormat = NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
     
     return DataRow(cells: [
       DataCell(Text(client.name, style: const TextStyle(fontWeight: FontWeight.w500))),

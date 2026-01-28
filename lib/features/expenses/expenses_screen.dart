@@ -36,6 +36,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   String _searchTerm = '';
   String _filterCategory = 'All Categories';
   String _filterStatus = 'All Statuses';
+  String _currencySymbol = '\$';
 
   List<String> _expenseCategories = ["All Categories"];
   final List<String> _expenseStatuses = [
@@ -45,22 +46,38 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   @override
   void initState() {
     super.initState();
-    _seedInitialData();
+    _initializeLookups();
     _expensesStream = _watchExpensesWithDetails();
     _loadCategories();
   }
   
   void _loadCategories() async {
     final cats = await (_database.select(_database.categories)..where((c) => c.type.equals('expense'))).get();
+    if (!mounted) return;
     setState(() {
       _expenseCategories = ["All Categories", ...cats.map((c) => c.name)];
     });
   }
   
-  // Seed some initial categories and vendors for demonstration
-  void _seedInitialData() async {
-    final existingCategories = await (_database.select(_database.categories)..where((c) => c.type.equals('expense'))).get();
+  Future<void> _initializeLookups() async {
+    final demoMode = await _database.isDemoModeEnabled();
+    final currencySymbol = await _database.getCurrencySymbol();
+
+    final existingCategories =
+        await (_database.select(_database.categories)..where((c) => c.type.equals('expense'))).get();
     if (existingCategories.isEmpty) {
+      await _database.into(_database.categories).insert(CategoriesCompanion.insert(name: 'General', type: 'expense'));
+      if (demoMode) {
+        await _database.batch((batch) {
+          batch.insertAll(_database.categories, [
+            CategoriesCompanion.insert(name: 'Office Supplies', type: 'expense'),
+            CategoriesCompanion.insert(name: 'Software', type: 'expense'),
+            CategoriesCompanion.insert(name: 'Travel', type: 'expense'),
+            CategoriesCompanion.insert(name: 'Meals & Entertainment', type: 'expense'),
+          ]);
+        });
+      }
+    } else if (demoMode && existingCategories.length < 3) {
       await _database.batch((batch) {
         batch.insertAll(_database.categories, [
           CategoriesCompanion.insert(name: 'Office Supplies', type: 'expense'),
@@ -72,7 +89,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     }
 
     final existingVendors = await (_database.select(_database.vendors)).get();
-    if (existingVendors.isEmpty) {
+    if (demoMode && existingVendors.isEmpty) {
       await _database.batch((batch) {
         batch.insertAll(_database.vendors, [
           VendorsCompanion.insert(name: 'Office Depot'),
@@ -81,6 +98,11 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         ]);
       });
     }
+
+    if (!mounted) return;
+    setState(() {
+      _currencySymbol = currencySymbol;
+    });
   }
 
   Stream<List<ExpenseWithDetails>> _watchExpensesWithDetails() {
@@ -215,7 +237,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     final approvedExpenses = expenses.where((e) => e.status == 'approved').fold(0.0, (sum, e) => sum + e.amount);
     final avgExpense = expenses.isNotEmpty ? totalExpenses / expenses.length : 0.0;
     
-    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final currencyFormat = NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -321,7 +343,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
 
   DataRow _buildDataRow(ExpenseWithDetails details) {
     final expense = details.expense;
-    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final currencyFormat = NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
     final dateFormat = DateFormat('MMM d, yyyy');
 
     final statusChip = Chip(

@@ -434,6 +434,17 @@ class AppDatabase extends _$AppDatabase {
     return setSettingString(key, value.toString());
   }
 
+  Future<String> getCurrencySymbol() async {
+    final symbol = await getSettingString('currency.symbol');
+    if (symbol == null || symbol.trim().isEmpty) return '\$';
+    return symbol.trim();
+  }
+
+  Future<bool> isDemoModeEnabled() async {
+    final v = await getSettingBool('demo.mode');
+    return v ?? false;
+  }
+
   // --- Report Methods ---
   Future<List<MonthlyTotal>> getPaidRevenueByMonth({int monthsBack = 12}) async {
     final now = DateTime.now();

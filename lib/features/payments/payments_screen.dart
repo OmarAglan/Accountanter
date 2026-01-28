@@ -17,11 +17,19 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
   final AppDatabase _database = AppDatabase.instance;
   late final Stream<List<PaymentWithInvoiceAndClient>> _paymentsStream;
   String _searchTerm = '';
+  String _currencySymbol = '\$';
 
   @override
   void initState() {
     super.initState();
     _paymentsStream = _database.watchAllPaymentsWithInvoiceAndClient();
+    _loadCurrencySymbol();
+  }
+
+  Future<void> _loadCurrencySymbol() async {
+    final symbol = await _database.getCurrencySymbol();
+    if (!mounted) return;
+    setState(() => _currencySymbol = symbol);
   }
 
   void _openAddPaymentDialog() {
@@ -63,7 +71,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final currencyFormat = NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
     final dateFormat = DateFormat('MMM d, yyyy');
 
     return StreamBuilder<List<PaymentWithInvoiceAndClient>>(

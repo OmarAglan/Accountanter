@@ -32,18 +32,33 @@ class _InventoryScreenState extends State<InventoryScreen> {
   final AppDatabase _database = AppDatabase.instance;
   late Stream<List<InventoryItemWithDetails>> _itemsStream;
   String _searchTerm = '';
+  String _currencySymbol = '\$';
 
   @override
   void initState() {
     super.initState();
-    _seedInitialData(); // Add some data for demonstration
+    _initializeLookups();
     _itemsStream = _watchInventoryWithDetails();
   }
 
-  // Seed some initial categories and suppliers for demonstration
-  void _seedInitialData() async {
-    final existingCategories = await (_database.select(_database.categories)).get();
-    if (existingCategories.isEmpty) {
+  Future<void> _initializeLookups() async {
+    final demoMode = await _database.isDemoModeEnabled();
+    final currencySymbol = await _database.getCurrencySymbol();
+
+    final inventoryCategories =
+        await (_database.select(_database.categories)..where((c) => c.type.equals('inventory'))).get();
+    if (inventoryCategories.isEmpty) {
+      await _database.into(_database.categories).insert(CategoriesCompanion.insert(name: 'General', type: 'inventory'));
+      if (demoMode) {
+        await _database.batch((batch) {
+          batch.insertAll(_database.categories, [
+            CategoriesCompanion.insert(name: 'Electronics', type: 'inventory'),
+            CategoriesCompanion.insert(name: 'Accessories', type: 'inventory'),
+            CategoriesCompanion.insert(name: 'Software', type: 'inventory'),
+          ]);
+        });
+      }
+    } else if (demoMode && inventoryCategories.length < 3) {
       await _database.batch((batch) {
         batch.insertAll(_database.categories, [
           CategoriesCompanion.insert(name: 'Electronics', type: 'inventory'),
@@ -54,7 +69,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     }
 
     final existingSuppliers = await (_database.select(_database.suppliers)).get();
-    if (existingSuppliers.isEmpty) {
+    if (demoMode && existingSuppliers.isEmpty) {
       await _database.batch((batch) {
         batch.insertAll(_database.suppliers, [
           SuppliersCompanion.insert(name: 'TechCorp'),
@@ -64,6 +79,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
         ]);
       });
     }
+
+    if (!mounted) return;
+    setState(() {
+      _currencySymbol = currencySymbol;
+    });
   }
   
   Stream<List<InventoryItemWithDetails>> _watchInventoryWithDetails() {
@@ -235,7 +255,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     final totalValue = items.fold(0.0, (sum, i) => sum + (i.quantity * i.unitPrice));
     final lowStockCount = items.where((i) => i.quantity > 0 && i.quantity <= i.minStock).length;
     final outOfStockCount = items.where((i) => i.quantity == 0).length;
-    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final currencyFormat = NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -316,7 +336,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   DataRow _buildDataRow(InventoryItemWithDetails details) {
     final item = details.item;
-    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final currencyFormat = NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
     final totalValue = item.quantity * item.unitPrice;
     
     String status;

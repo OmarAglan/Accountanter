@@ -23,10 +23,12 @@ class _AddEditRecurringInvoiceDialogState extends State<AddEditRecurringInvoiceD
   DateTime _startDate = DateTime.now();
   
   bool _isLoading = false;
+  String _currencySymbol = '\$';
 
   @override
   void initState() {
     super.initState();
+    _loadCurrencySymbol();
     if (widget.recurringInvoice != null) {
       _selectedClientId = widget.recurringInvoice!.clientId;
       _selectedFrequency = widget.recurringInvoice!.frequency;
@@ -34,6 +36,12 @@ class _AddEditRecurringInvoiceDialogState extends State<AddEditRecurringInvoiceD
       _descriptionController.text = widget.recurringInvoice!.description ?? '';
       _startDate = widget.recurringInvoice!.startDate;
     }
+  }
+
+  Future<void> _loadCurrencySymbol() async {
+    final symbol = await AppDatabase.instance.getCurrencySymbol();
+    if (!mounted) return;
+    setState(() => _currencySymbol = symbol);
   }
 
   Future<void> _save() async {
@@ -128,7 +136,7 @@ class _AddEditRecurringInvoiceDialogState extends State<AddEditRecurringInvoiceD
                         Expanded(
                           child: TextFormField(
                             controller: _amountController,
-                            decoration: const InputDecoration(labelText: 'Amount', prefixText: '\$'),
+                            decoration: InputDecoration(labelText: 'Amount', prefixText: _currencySymbol),
                             keyboardType: TextInputType.number,
                             validator: (v) => v!.isEmpty ? 'Required' : null,
                           ),

@@ -34,6 +34,7 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
   List<Category> _categories = [];
   List<Vendor> _vendors = [];
   bool _isLoading = true;
+  String _currencySymbol = '\$';
 
   DateTime _selectedDate = DateTime.now();
   
@@ -66,10 +67,12 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
 
     final cats = await catsQuery.get();
     final vends = await vendsQuery.get();
+    final currencySymbol = await _database.getCurrencySymbol();
 
     setState(() {
       _categories = cats;
       _vendors = vends;
+      _currencySymbol = currencySymbol;
       
       if (_isEditing) {
         final expense = widget.expense!;
@@ -196,7 +199,7 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
   Widget _buildAmountField() {
     return TextFormField(
       controller: _amountController,
-      decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.amount} *', prefixText: '\$'),
+      decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.amount} *', prefixText: _currencySymbol),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),

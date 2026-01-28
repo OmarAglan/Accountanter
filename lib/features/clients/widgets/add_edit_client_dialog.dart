@@ -16,21 +16,30 @@ class AddEditClientDialog extends StatefulWidget {
 
 class _AddEditClientDialogState extends State<AddEditClientDialog> {
   final _formKey = GlobalKey<FormState>();
+  final AppDatabase _database = AppDatabase.instance;
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _balanceController = TextEditingController();
   String _selectedType = 'Debtor';
   bool get _isEditing => widget.client != null;
+  String _currencySymbol = '\$';
 
   @override
   void initState() {
     super.initState();
+    _loadCurrencySymbol();
     if (_isEditing) {
       _nameController.text = widget.client!.name;
       _emailController.text = widget.client!.email ?? '';
       _balanceController.text = widget.client!.balance.abs().toStringAsFixed(2);
       _selectedType = widget.client!.type;
     }
+  }
+
+  Future<void> _loadCurrencySymbol() async {
+    final symbol = await _database.getCurrencySymbol();
+    if (!mounted) return;
+    setState(() => _currencySymbol = symbol);
   }
   
   @override
@@ -81,7 +90,7 @@ class _AddEditClientDialogState extends State<AddEditClientDialog> {
                 controller: _balanceController,
                 decoration: InputDecoration(
                   labelText: _isEditing ? 'Current Balance' : 'Opening Balance',
-                  prefixText: '\$',
+                  prefixText: _currencySymbol,
                 ),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [

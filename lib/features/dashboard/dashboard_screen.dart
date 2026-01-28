@@ -18,11 +18,19 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final AppDatabase _database = AppDatabase.instance;
   late Future<DashboardData> _dashboardDataFuture;
+  String _currencySymbol = '\$';
 
   @override
   void initState() {
     super.initState();
     _dashboardDataFuture = _database.getDashboardData();
+    _loadCurrencySymbol();
+  }
+
+  Future<void> _loadCurrencySymbol() async {
+    final symbol = await _database.getCurrencySymbol();
+    if (!mounted) return;
+    setState(() => _currencySymbol = symbol);
   }
 
   void _refreshData() {
@@ -69,7 +77,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildKpiGrid(DashboardData data) {
-    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final currencyFormat = NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -141,7 +149,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildCashFlowCard(BuildContext context, DashboardData data) {
     final textTheme = Theme.of(context).textTheme;
-    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final currencyFormat = NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
     final netFlow = data.moneyInThisMonth - data.moneyOutThisMonth;
 
     return Card(
@@ -256,7 +264,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildRecentActivity(BuildContext context, DashboardData data) {
-    final currencyFormat = NumberFormat.currency(symbol: '\$');
+    final currencyFormat = NumberFormat.currency(symbol: _currencySymbol);
     
     IconData _getActivityIcon(ActivityType type) {
       switch(type) {

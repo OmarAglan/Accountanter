@@ -6,8 +6,27 @@ import 'package:intl/intl.dart';
 import 'widgets/add_edit_recurring_invoice_dialog.dart';
 
 
-class RecurringInvoicesScreen extends StatelessWidget {
+class RecurringInvoicesScreen extends StatefulWidget {
   const RecurringInvoicesScreen({super.key});
+
+  @override
+  State<RecurringInvoicesScreen> createState() => _RecurringInvoicesScreenState();
+}
+
+class _RecurringInvoicesScreenState extends State<RecurringInvoicesScreen> {
+  String _currencySymbol = '\$';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrencySymbol();
+  }
+
+  Future<void> _loadCurrencySymbol() async {
+    final symbol = await AppDatabase.instance.getCurrencySymbol();
+    if (!mounted) return;
+    setState(() => _currencySymbol = symbol);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,11 +110,12 @@ class RecurringInvoicesScreen extends StatelessWidget {
                   rows: list.map((item) {
                     final r = item.recurringInvoice;
                     final c = item.client;
+                    final currencyFormat = NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
                     return DataRow(cells: [
                       DataCell(Text(c.name)),
                       DataCell(Text(r.description ?? '-')),
                       DataCell(Text(r.frequency)),
-                      DataCell(Text('\$${r.amount.toStringAsFixed(2)}')),
+                      DataCell(Text(currencyFormat.format(r.amount), style: const TextStyle(fontFamily: 'monospace'))),
                       DataCell(Text(DateFormat('MMM d, y').format(r.nextRunDate))),
                       DataCell(_buildStatusBadge(context, r.status)),
                       DataCell(Row(
