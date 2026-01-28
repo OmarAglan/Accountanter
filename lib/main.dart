@@ -25,12 +25,14 @@ class _MyAppState extends State<MyApp> {
   AppStatus _status = AppStatus.uninitialized;
   late final AuthService _authService;
   String? _prefilledUsername;
+  Locale _locale = const Locale('en');
 
   @override
   void initState() {
     super.initState();
     _authService = AuthService();
     _initializeApp();
+    _loadLocaleSetting();
   }
   
   @override
@@ -58,6 +60,17 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  Future<void> _loadLocaleSetting() async {
+    final code = await _authService.database.getSettingString('ui.locale');
+    if (!mounted) return;
+    if (code == null || code.trim().isEmpty) return;
+    setState(() => _locale = Locale(code.trim()));
+  }
+
+  void _onLocaleChanged(Locale locale) {
+    setState(() => _locale = locale);
+  }
+
   void _onActivatedOrLoggedIn() {
     setState(() => _status = AppStatus.loggedIn);
   }
@@ -73,6 +86,7 @@ class _MyAppState extends State<MyApp> {
       title: 'Accountanter',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      locale: _locale,
       
       // Add Localization delegates
       localizationsDelegates: const [
@@ -99,7 +113,7 @@ class _MyAppState extends State<MyApp> {
       case AppStatus.loggedOut:
         return LoginScreen(onLogin: _onActivatedOrLoggedIn, prefilledUsername: _prefilledUsername);
       case AppStatus.loggedIn:
-        return MainScreen(onLogout: _onLogout);
+        return MainScreen(onLogout: _onLogout, onLocaleChanged: _onLocaleChanged);
     }
   }
 }

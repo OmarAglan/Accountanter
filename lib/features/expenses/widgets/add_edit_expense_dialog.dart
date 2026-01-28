@@ -214,7 +214,7 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
   
   Widget _buildCategoryDropdown() {
     return DropdownButtonFormField<Category>(
-      key: ValueKey(_selectedCategory?.id),
+      key: ValueKey('category:${_selectedCategory?.id ?? 'none'}'),
       initialValue: _selectedCategory,
       decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.category} *'),
       hint: Text(AppLocalizations.of(context)!.pleaseSelect),
@@ -235,7 +235,7 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
   
   Widget _buildVendorDropdown() {
     return DropdownButtonFormField<Vendor>(
-      key: ValueKey(_selectedVendor?.id),
+      key: ValueKey('vendor:${_selectedVendor?.id ?? 'none'}'),
       initialValue: _selectedVendor,
       decoration: InputDecoration(labelText: AppLocalizations.of(context)!.vendor),
       hint: Text('${AppLocalizations.of(context)!.pleaseSelect} (${AppLocalizations.of(context)!.optional})'),
@@ -255,7 +255,7 @@ class _AddEditExpenseDialogState extends State<AddEditExpenseDialog> {
   
   Widget _buildDropdown(List<String> items, String label, String? value, ValueChanged<String?> onChanged) {
     return DropdownButtonFormField<String>(
-      key: ValueKey(value),
+      key: ValueKey('$label:${value ?? 'none'}'),
       initialValue: value,
       decoration: InputDecoration(labelText: label),
       items: items.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),

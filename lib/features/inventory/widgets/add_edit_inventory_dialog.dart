@@ -163,7 +163,7 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
   
   Widget _buildCategoryDropdown() {
     return DropdownButtonFormField<Category>(
-      key: ValueKey(_selectedCategory?.id),
+      key: ValueKey('category:${_selectedCategory?.id ?? 'none'}'),
       initialValue: _selectedCategory,
       decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.category} *'),
       hint: Text(AppLocalizations.of(context)!.pleaseSelect),
@@ -184,7 +184,7 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
   
   Widget _buildSupplierDropdown() {
     return DropdownButtonFormField<Supplier>(
-      key: ValueKey(_selectedSupplier?.id),
+      key: ValueKey('supplier:${_selectedSupplier?.id ?? 'none'}'),
       initialValue: _selectedSupplier,
       decoration: InputDecoration(labelText: 'Supplier'),
       hint: Text('${AppLocalizations.of(context)!.pleaseSelect} (${AppLocalizations.of(context)!.optional})'),

@@ -12,8 +12,9 @@ class LineItemControllers {
   final TextEditingController descriptionController;
   final TextEditingController quantityController;
   final TextEditingController unitPriceController;
+  int? inventoryItemId;
 
-  LineItemControllers({String? description, int? quantity, double? unitPrice})
+  LineItemControllers({String? description, int? quantity, double? unitPrice, this.inventoryItemId})
       : descriptionController = TextEditingController(text: description ?? ''),
         quantityController = TextEditingController(text: (quantity ?? 1).toString()),
         unitPriceController = TextEditingController(text: (unitPrice ?? 0.0).toStringAsFixed(2));
@@ -434,17 +435,68 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
     final quantity = int.tryParse(controllers.quantityController.text) ?? 0;
     final unitPrice = double.tryParse(controllers.unitPriceController.text) ?? 0.0;
     final total = quantity * unitPrice;
+    final l10n = AppLocalizations.of(context)!;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(flex: 4, child: TextFormField(
-            controller: controllers.descriptionController,
-            decoration: InputDecoration(isDense: true, hintText: AppLocalizations.of(context)!.description),
-            validator: (v) => v!.isEmpty ? AppLocalizations.of(context)!.required : null,
-          )),
+          Expanded(
+            flex: 4,
+            child: Column(
+              children: [
+                StreamBuilder<List<InventoryItem>>(
+                  stream: _database.watchAllInventoryItems(),
+                  builder: (context, snapshot) {
+                    final items = snapshot.data ?? const <InventoryItem>[];
+                    if (items.isEmpty) return const SizedBox.shrink();
+
+                    final selectedId = controllers.inventoryItemId;
+                    final hasSelected = selectedId != null && items.any((i) => i.id == selectedId);
+                    final effectiveSelectedId = hasSelected ? selectedId : null;
+
+                    return DropdownButtonFormField<int?>(
+                      key: ValueKey('line:$index:inventory:${effectiveSelectedId ?? 'none'}'),
+                      initialValue: effectiveSelectedId,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        labelText: '${l10n.inventory} ${l10n.items}',
+                      ),
+                      items: [
+                        DropdownMenuItem<int?>(
+                          value: null,
+                          child: Text('${l10n.pleaseSelect} (${l10n.optional})'),
+                        ),
+                        ...items.map((item) {
+                          final sku = item.sku;
+                          final label = (sku != null && sku.trim().isNotEmpty) ? '${item.name} • $sku' : item.name;
+                          return DropdownMenuItem<int?>(value: item.id, child: Text(label, overflow: TextOverflow.ellipsis));
+                        }),
+                      ],
+                      onChanged: (id) {
+                        setState(() {
+                          controllers.inventoryItemId = id;
+                          if (id == null) return;
+                          final selected = items.firstWhere((i) => i.id == id);
+                          controllers.descriptionController.text = selected.name;
+                          controllers.unitPriceController.text = selected.unitPrice.toStringAsFixed(2);
+                        });
+                        _updateTotals();
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: controllers.descriptionController,
+                  decoration: InputDecoration(isDense: true, hintText: l10n.description),
+                  validator: (v) => v!.isEmpty ? l10n.required : null,
+                ),
+              ],
+            ),
+          ),
           const SizedBox(width: 8),
           Expanded(flex: 1, child: TextFormField(
             controller: controllers.quantityController,

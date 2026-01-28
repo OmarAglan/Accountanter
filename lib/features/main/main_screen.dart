@@ -28,7 +28,8 @@ enum AppPage { dashboard, clients, invoices, inventory, expenses, recurring, pay
 
 class MainScreen extends StatefulWidget {
   final VoidCallback onLogout;
-  const MainScreen({super.key, required this.onLogout});
+  final ValueChanged<Locale> onLocaleChanged;
+  const MainScreen({super.key, required this.onLogout, required this.onLocaleChanged});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -66,7 +67,7 @@ class _MainScreenState extends State<MainScreen> {
       case AppPage.reports:
         return const ReportsScreen();
       case AppPage.settings:
-        return const SettingsScreen();
+        return SettingsScreen(onLocaleChanged: widget.onLocaleChanged);
       case AppPage.help:
         return const HelpScreen();
     }
