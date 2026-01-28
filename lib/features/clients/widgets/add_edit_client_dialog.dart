@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:accountanter/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
-import 'package:drift/drift.dart' hide Column;
 import '../../../data/database.dart';
 
 class AddEditClientDialog extends StatefulWidget {
@@ -74,7 +73,8 @@ class _AddEditClientDialogState extends State<AddEditClientDialog> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedType,
+                key: ValueKey(_selectedType),
+                initialValue: _selectedType,
                 decoration: InputDecoration(labelText: AppLocalizations.of(context)!.client),
                 items: ['Debtor', 'Creditor']
                     .map((type) => DropdownMenuItem(value: type, child: Text(type)))

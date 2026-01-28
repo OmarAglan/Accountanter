@@ -207,7 +207,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
             SizedBox(
               width: 200,
               child: DropdownButtonFormField<String>(
-                value: _filterType,
+                key: ValueKey(_filterType),
+                initialValue: _filterType,
                 decoration: const InputDecoration(isDense: true),
                 items: ['All Clients', 'Debtors', 'Creditors']
                     .map((type) => DropdownMenuItem(value: type, child: Text(type)))

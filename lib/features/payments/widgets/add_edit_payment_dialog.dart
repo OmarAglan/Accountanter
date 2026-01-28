@@ -126,7 +126,8 @@ class _AddEditPaymentDialogState extends State<AddEditPaymentDialog> {
                     final invoices = snapshot.data ?? [];
 
                     return DropdownButtonFormField<InvoiceWithClient>(
-                      value: _selectedInvoice,
+                      key: ValueKey(_selectedInvoice?.invoice.id),
+                      initialValue: _selectedInvoice,
                       isExpanded: true,
                       decoration: InputDecoration(labelText: '${l10n.invoices} *'),
                       items: invoices.map((iwc) {
@@ -164,7 +165,8 @@ class _AddEditPaymentDialogState extends State<AddEditPaymentDialog> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: _method,
+                  key: ValueKey(_method),
+                  initialValue: _method,
                   decoration: const InputDecoration(labelText: 'Method'),
                   items: const ['Cash', 'Credit Card', 'Bank Transfer', 'Check', 'Other']
                       .map((m) => DropdownMenuItem(value: m, child: Text(m)))

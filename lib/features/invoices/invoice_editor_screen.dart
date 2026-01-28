@@ -336,7 +336,8 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
                 if (!snapshot.hasData) return const CircularProgressIndicator();
                 final clients = snapshot.data!;
                 return DropdownButtonFormField<Client>(
-                  value: _selectedClient,
+                  key: ValueKey(_selectedClient?.id),
+                  initialValue: _selectedClient,
                   hint: Text(AppLocalizations.of(context)!.selectClient),
                   items: clients.map((client) => DropdownMenuItem(
                     value: client,

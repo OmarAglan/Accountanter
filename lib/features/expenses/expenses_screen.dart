@@ -283,7 +283,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             Expanded(
               flex: 1,
               child: DropdownButtonFormField<String>(
-                value: _filterCategory,
+                key: ValueKey(_filterCategory),
+                initialValue: _filterCategory,
                 decoration: InputDecoration(isDense: true, labelText: AppLocalizations.of(context)!.category),
                 items: _expenseCategories.map((type) => DropdownMenuItem(value: type, child: Text(type))).toList(),
                 onChanged: (value) => setState(() => _filterCategory = value!),
@@ -293,7 +294,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             Expanded(
               flex: 1,
               child: DropdownButtonFormField<String>(
-                value: _filterStatus,
+                key: ValueKey(_filterStatus),
+                initialValue: _filterStatus,
                 decoration: InputDecoration(isDense: true, labelText: AppLocalizations.of(context)!.status),
                 items: _expenseStatuses.map((type) => DropdownMenuItem(value: type, child: Text(type))).toList(),
                 onChanged: (value) => setState(() => _filterStatus = value!),

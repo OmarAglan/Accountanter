@@ -117,16 +117,6 @@ class AppSidebar extends StatelessWidget {
   }
 
   Widget _buildFooter(BuildContext context) {
-    // This is a placeholder for Settings and Help. They won't change the page for now.
-    _onSettingsTapped() {
-      // TODO: Navigate to settings page
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.settingsNotImplemented)));
-    }
-     _onHelpTapped() {
-      // TODO: Navigate to help page
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.helpNotImplemented)));
-    }
-
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(

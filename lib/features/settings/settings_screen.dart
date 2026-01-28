@@ -181,7 +181,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     : rates.where((r) => r.isDefault).firstOrNull;
 
                 return DropdownButtonFormField<TaxRate>(
-                  value: selected,
+                  key: ValueKey(selected?.id),
+                  initialValue: selected,
                   isExpanded: true,
                   decoration: const InputDecoration(labelText: 'Default Tax Rate'),
                   items: rates.map((r) {
