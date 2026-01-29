@@ -7,6 +7,7 @@ import 'package:accountanter/theme/app_colors.dart';
 import 'widgets/invoice_summary_card.dart';
 import 'invoice_editor_screen.dart';
 import '../main/widgets/empty_state.dart';
+import '../../utils/csv_export_util.dart';
 
 class InvoicesScreen extends StatefulWidget {
   const InvoicesScreen({super.key});
@@ -96,12 +97,13 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(context),
+            _buildHeader(context, filteredInvoices),
             const SizedBox(height: 24),
-            _buildSummaryCards(allInvoices),
+            _buildSummaryCards(filteredInvoices),
             const SizedBox(height: 24),
             _buildFilterBar(),
             const SizedBox(height: 24),
-            _buildInvoicesTable(context, allInvoices),
+            _buildDataTable(filteredInvoices),
           ],
         );
       },
@@ -119,7 +121,23 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     }).toList();
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Future<void> _exportToCsv(List<InvoiceWithStats> invoices) async {
+    final path = await CsvExportUtil.exportInvoices(invoices);
+    if (mounted) {
+      if (path != null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${AppLocalizations.of(context)!.export} ${AppLocalizations.of(context)!.success}: $path'),
+        ));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(AppLocalizations.of(context)!.error),
+          backgroundColor: AppColors.destructive,
+        ));
+      }
+    }
+  }
+
+  Widget _buildHeader(BuildContext context, List<InvoiceWithStats> invoices) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -130,13 +148,24 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
             Text('Create, manage, and track your invoices.', style: Theme.of(context).textTheme.bodyMedium),
           ],
         ),
-        ElevatedButton.icon(
-          onPressed: _navigateToInvoiceEditor,
-          icon: const Icon(LucideIcons.plus, size: 16),
-          label: Text(AppLocalizations.of(context)!.newInvoice),
+        Row(
+          children: [
+            OutlinedButton.icon(
+              onPressed: () => _exportToCsv(invoices),
+              icon: const Icon(LucideIcons.download, size: 16),
+              label: Text(AppLocalizations.of(context)!.export),
+            ),
+            const SizedBox(width: 12),
+            ElevatedButton.icon(
+              onPressed: _navigateToInvoiceEditor,
+              icon: const Icon(LucideIcons.plus, size: 16),
+              label: Text(AppLocalizations.of(context)!.newInvoice),
+            ),
+          ],
         ),
       ],
     );
+  }
   }
 
   Widget _buildSummaryCards(List<InvoiceWithStats> invoices) {

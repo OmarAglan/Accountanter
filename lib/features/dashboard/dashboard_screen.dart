@@ -75,8 +75,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        int crossAxisCount = 4;
-        if (constraints.maxWidth < 1200) crossAxisCount = 2;
+        int crossAxisCount = 5;
+        if (constraints.maxWidth < 1400) crossAxisCount = 3;
+        if (constraints.maxWidth < 900) crossAxisCount = 2;
         if (constraints.maxWidth < 600) crossAxisCount = 1;
 
         return GridView.count(
@@ -92,6 +93,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               value: currencyFormat.format(data.totalReceivables),
               icon: LucideIcons.dollarSign,
               borderColor: AppColors.success,
+            ),
+            KpiCard(
+              title: AppLocalizations.of(context)!.totalOutstandingBalance,
+              value: currencyFormat.format(data.totalOutstandingBalance),
+              icon: LucideIcons.creditCard,
+              borderColor: AppColors.accent,
             ),
             KpiCard(
               title: AppLocalizations.of(context)!.totalPayables,

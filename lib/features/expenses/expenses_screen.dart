@@ -192,7 +192,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(context),
+            _buildHeader(context, filteredExpenses),
             const SizedBox(height: 24),
             _buildSummaryCards(allExpensesDetails.map((d) => d.expense).toList()),
             const SizedBox(height: 24),
@@ -205,7 +205,23 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Future<void> _exportToCsv(List<ExpenseWithDetails> expenses) async {
+    final path = await CsvExportUtil.exportExpenses(expenses);
+    if (mounted) {
+      if (path != null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${AppLocalizations.of(context)!.export} ${AppLocalizations.of(context)!.success}: $path'),
+        ));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(AppLocalizations.of(context)!.error),
+          backgroundColor: AppColors.destructive,
+        ));
+      }
+    }
+  }
+
+  Widget _buildHeader(BuildContext context, List<ExpenseWithDetails> expenses) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -219,17 +235,28 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             ),
           ],
         ),
-        ElevatedButton.icon(
-          onPressed: _showAddExpenseDialog,
-          icon: const Icon(LucideIcons.plus, size: 16),
-          label: Text(AppLocalizations.of(context)!.addExpense),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.accent,
-            foregroundColor: AppColors.accentForeground,
-          ),
+        Row(
+          children: [
+            OutlinedButton.icon(
+              onPressed: () => _exportToCsv(expenses),
+              icon: const Icon(LucideIcons.download, size: 16),
+              label: Text(AppLocalizations.of(context)!.export),
+            ),
+            const SizedBox(width: 12),
+            ElevatedButton.icon(
+              onPressed: _showAddExpenseDialog,
+              icon: const Icon(LucideIcons.plus, size: 16),
+              label: Text(AppLocalizations.of(context)!.addExpense),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                foregroundColor: AppColors.accentForeground,
+              ),
+            ),
+          ],
         )
       ],
     );
+  }
   }
   
   Widget _buildSummaryCards(List<Expense> expenses) {

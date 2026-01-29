@@ -160,6 +160,7 @@ class AppDatabase extends _$AppDatabase {
     return DashboardData(
       totalReceivables: results[0] as double,
       totalPayables: results[1] as double,
+      totalOutstandingBalance: results[0] as double, // For now, mapping to totalReceivables
       activeClients: results[2] as int,
       overdueInvoicesCount: results[3] as int,
       invoicesDueSoonCount: results[4] as int,
@@ -579,6 +580,7 @@ class RecentActivity {
 class DashboardData {
   final double totalReceivables;
   final double totalPayables;
+  final double totalOutstandingBalance;
   final int activeClients;
   final int overdueInvoicesCount;
   final int invoicesDueSoonCount;
@@ -590,6 +592,7 @@ class DashboardData {
   DashboardData({
     required this.totalReceivables,
     required this.totalPayables,
+    required this.totalOutstandingBalance,
     required this.activeClients,
     required this.overdueInvoicesCount,
     required this.invoicesDueSoonCount,

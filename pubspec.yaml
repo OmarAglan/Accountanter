@@ -53,6 +53,8 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   # For internationalization and localization
   intl: ^0.20.2
+  # For CSV generation and export
+  csv: ^6.0.0
 
 dev_dependencies:
   flutter_test:
