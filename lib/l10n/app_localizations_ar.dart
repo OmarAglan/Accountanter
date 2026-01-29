@@ -687,7 +687,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get reportsSubtitle => 'نظرة سريعة على الإيرادات والمصروفات والأرصدة المستحقة.';
+  String get reportsSubtitle =>
+      'نظرة سريعة على الإيرادات والمصروفات والأرصدة المستحقة.';
 
   @override
   String get refresh => 'تحديث';
@@ -720,7 +721,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reportTotal => 'الإجمالي';
 
   @override
-  String get settingsSubtitle => 'اضبط إعدادات الشركة الافتراضية وسلوك التطبيق.';
+  String get settingsSubtitle =>
+      'اضبط إعدادات الشركة الافتراضية وسلوك التطبيق.';
 
   @override
   String get settingsSaved => 'تم حفظ الإعدادات.';
@@ -738,7 +740,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get companyNamePlaceholder => 'اسم شركتك';
 
   @override
-  String get companyAddressPlaceholder => '123 شارع الأعمال\nمدينة الأعمال، 12345';
+  String get companyAddressPlaceholder =>
+      '123 شارع الأعمال\nمدينة الأعمال، 12345';
 
   @override
   String get defaultsSection => 'الإعدادات الافتراضية';
@@ -796,13 +799,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get login => 'تسجيل الدخول';
 
   @override
-  String get invalidUsernameOrPassword => 'اسم المستخدم أو كلمة المرور غير صحيحة.';
+  String get invalidUsernameOrPassword =>
+      'اسم المستخدم أو كلمة المرور غير صحيحة.';
 
   @override
   String get activateAccountanter => 'تفعيل محاسب';
 
   @override
-  String get activationSubtitle => 'أدخل مفتاح الترخيص وأنشئ حساب مستخدم محلياً.';
+  String get activationSubtitle =>
+      'أدخل مفتاح الترخيص وأنشئ حساب مستخدم محلياً.';
 
   @override
   String get licenseKey => 'مفتاح الترخيص';

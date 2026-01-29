@@ -541,7 +541,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get print => 'Print';
 
   @override
-  String get helpQuickHelpSubtitle => 'Quick help for the beta starter edition.';
+  String get helpQuickHelpSubtitle =>
+      'Quick help for the beta starter edition.';
 
   @override
   String get helpGettingStartedTitle => 'Getting Started';
