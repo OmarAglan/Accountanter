@@ -482,8 +482,8 @@ class _GlobalSearchDialogState extends State<_GlobalSearchDialog> {
     final expenses = await (widget.database.select(widget.database.expenses)).get();
     final matchingExpenses = expenses.where((e) => e.description.toLowerCase().contains(lower)).take(5).toList();
 
-    final invoicesWithClient = await widget.database.watchAllInvoicesWithClient().first;
-    final matchingInvoices = invoicesWithClient.where((iwc) {
+    final invoicesWithStats = await widget.database.watchAllInvoicesWithStats().first;
+    final matchingInvoices = invoicesWithStats.where((iwc) {
       return iwc.invoice.invoiceNumber.toLowerCase().contains(lower) || iwc.client.name.toLowerCase().contains(lower);
     }).take(5).toList();
 
@@ -498,7 +498,7 @@ class _GlobalSearchDialogState extends State<_GlobalSearchDialog> {
 
 class _SearchResults {
   final List<Client> clients;
-  final List<InvoiceWithClient> invoices;
+  final List<InvoiceWithStats> invoices;
   final List<InventoryItem> inventoryItems;
   final List<Expense> expenses;
 

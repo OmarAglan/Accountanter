@@ -9,6 +9,7 @@ import 'package:accountanter/theme/app_colors.dart';
 import 'widgets/expense_summary_card.dart';
 import 'widgets/add_edit_expense_dialog.dart';
 import '../main/widgets/empty_state.dart';
+import '../../utils/csv_export_util.dart';
 
 // New data class to hold the result of the join
 class ExpenseWithDetails {

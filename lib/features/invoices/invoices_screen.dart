@@ -93,10 +93,11 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
       stream: _invoicesStream,
       builder: (context, snapshot) {
         final allInvoices = snapshot.data ?? [];
+        final filteredInvoices = _filterInvoices(allInvoices);
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(context),
             _buildHeader(context, filteredInvoices),
             const SizedBox(height: 24),
             _buildSummaryCards(filteredInvoices),
