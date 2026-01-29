@@ -131,7 +131,7 @@ class _AddEditPaymentDialogState extends State<AddEditPaymentDialog> {
 
                     return DropdownButtonFormField<InvoiceWithStats>(
                       key: ValueKey(_selectedInvoice?.invoice.id),
-                      value: _selectedInvoice != null ? invoices.firstWhere((i) => i.invoice.id == _selectedInvoice!.invoice.id, orElse: () => _selectedInvoice as InvoiceWithStats) : null,
+                      initialValue: _selectedInvoice != null ? invoices.firstWhere((i) => i.invoice.id == _selectedInvoice!.invoice.id, orElse: () => _selectedInvoice as InvoiceWithStats) : null,
                       isExpanded: true,
                       decoration: InputDecoration(
                         labelText: '${l10n.invoices} *',

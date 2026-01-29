@@ -213,30 +213,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildInvoicesTable(BuildContext context, List<InvoiceWithStats> allInvoices) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          TabBar(
-            controller: _tabController,
-            tabs: _tabs.map((label) => Tab(text: label)).toList(),
-            onTap: (_) => setState(() {}),
-          ),
-          SizedBox(
-            height: 400,
-            child: TabBarView(
-              controller: _tabController,
-              children: _tabs.map((_) {
-                final filteredList = _filterInvoices(allInvoices);
-                return _buildDataTable(filteredList);
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
   
   Widget _buildDataTable(List<InvoiceWithStats> invoices) {
     if (invoices.isEmpty) {
