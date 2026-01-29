@@ -22,7 +22,7 @@ class _AddEditPaymentDialogState extends State<AddEditPaymentDialog> {
 
   bool get _isEditing => widget.payment != null;
 
-  InvoiceWithClient? _selectedInvoice;
+  InvoiceWithStats? _selectedInvoice;
   DateTime _date = DateTime.now();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
@@ -45,7 +45,11 @@ class _AddEditPaymentDialogState extends State<AddEditPaymentDialog> {
       _referenceController.text = existing.payment.referenceNumber ?? '';
       _notesController.text = existing.payment.notes ?? '';
       _method = existing.payment.method;
-      _selectedInvoice = InvoiceWithClient(invoice: existing.invoice, client: existing.client);
+      _selectedInvoice = InvoiceWithStats(
+        invoice: existing.invoice, 
+        client: existing.client,
+        paidAmount: 0.0, // Mocked for initial value
+      );
     }
   }
 
