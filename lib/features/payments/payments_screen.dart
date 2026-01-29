@@ -73,8 +73,8 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final currencyFormat = NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
-    final dateFormat = DateFormat('MMM d, yyyy');
+    final currencyFormat =
+        NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
 
     return StreamBuilder<List<PaymentWithInvoiceAndClient>>(
       stream: _paymentsStream,
