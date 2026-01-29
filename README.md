@@ -1,4 +1,4 @@
-# Accountanter (Beta 0.1)
+# Accountanter (Alpha 0.2)
 
 Accountanter is an offline-first Flutter app for lightweight bookkeeping: clients, invoices, payments, expenses, inventory, recurring invoices, and basic reporting.
 
@@ -19,7 +19,7 @@ flutter run
 flutter test
 ```
 
-## Activation (Beta)
+## Activation (Alpha)
 
 The app uses a local activation gate. On first launch you’ll see an activation screen.
 

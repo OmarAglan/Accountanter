@@ -90,7 +90,7 @@ class AppSidebar extends StatelessWidget {
                     border: Border.all(color: AppColors.sidebarPrimary.withValues(alpha: 0.2)),
                   ),
                   child: Text(
-                    'Beta 0.1',
+                    'Alpha 0.2',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -147,7 +147,7 @@ class AppSidebar extends StatelessWidget {
               const SizedBox(height: 12),
               Center(
                 child: Text(
-                  'v0.1.0+1',
+                  'v0.2.0+2',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.sidebarForeground.withValues(alpha: 0.5),
                         fontSize: 10,
