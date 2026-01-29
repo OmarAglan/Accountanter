@@ -81,6 +81,23 @@ class AppSidebar extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                 ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.sidebarPrimary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: AppColors.sidebarPrimary.withValues(alpha: 0.2)),
+                  ),
+                  child: Text(
+                    'Beta 0.1',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.sidebarPrimary,
+                    ),
+                  ),
+                ),
               ],
             ),
           // We can add a toggle button here later if needed
@@ -121,9 +138,23 @@ class AppSidebar extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-           _buildFooterItem(context, LucideIcons.settings, AppLocalizations.of(context)!.settings, () => onPageSelected(AppPage.settings), isActive: currentPage == AppPage.settings),
-           _buildFooterItem(context, LucideIcons.circleQuestionMark, AppLocalizations.of(context)!.help, () => onPageSelected(AppPage.help), isActive: currentPage == AppPage.help),
-           _buildLogoutButton(context),
+            _buildFooterItem(context, LucideIcons.settings, AppLocalizations.of(context)!.settings, () => onPageSelected(AppPage.settings), isActive: currentPage == AppPage.settings),
+            _buildFooterItem(context, LucideIcons.circleQuestionMark, AppLocalizations.of(context)!.help, () => onPageSelected(AppPage.help), isActive: currentPage == AppPage.help),
+            _buildLogoutButton(context),
+            if (isExpanded) ...[
+              const SizedBox(height: 12),
+              const Divider(color: AppColors.sidebarBorder, height: 1),
+              const SizedBox(height: 12),
+              Center(
+                child: Text(
+                  'v0.1.0+1',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.sidebarForeground.withValues(alpha: 0.5),
+                        fontSize: 10,
+                      ),
+                ),
+              ),
+            ],
         ],
       ),
     );

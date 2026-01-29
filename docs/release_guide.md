@@ -15,8 +15,8 @@ Before building for any platform, ensure your dependencies are up to date and yo
     dart run build_runner build --delete-conflicting-outputs
     ```
 3.  **Check Version**:
-    Open `pubspec.yaml` and update the `version:` line (e.g., `1.0.1+2`).
-    *   `1.0.1` is the user-visible version.
+    Open `pubspec.yaml` and update the `version:` line (e.g., `0.1.0+2`).
+    *   `0.1.0` is the user-visible version.
     *   `2` is the internal build number.
 
 ---
