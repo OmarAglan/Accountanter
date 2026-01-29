@@ -291,6 +291,8 @@ class AppDatabase extends _$AppDatabase {
 
         await _adjustInventoryQuantity(inventoryItemId, -item.quantity.value);
       }
+
+      await _recalculateInvoicePaymentStatus(invoiceId);
     });
   }
 
