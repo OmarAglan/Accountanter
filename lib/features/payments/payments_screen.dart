@@ -19,6 +19,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
   late final Stream<List<PaymentWithInvoiceAndClient>> _paymentsStream;
   String _searchTerm = '';
   String _currencySymbol = '\$';
+  int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
 
   @override
   void initState() {
@@ -183,46 +184,39 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                       onAction: _openAddPaymentDialog,
                     )
                   else
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        columns: const [
-                          DataColumn(label: Text('Date')),
-                          DataColumn(label: Text('Invoice')),
-                          DataColumn(label: Text('Client')),
-                          DataColumn(label: Text('Amount')),
-                          DataColumn(label: Text('Method')),
-                          DataColumn(label: Text('Reference')),
-                          DataColumn(label: Text('Actions')),
-                        ],
-                        rows: filtered.map((p) {
-                          return DataRow(cells: [
-                            DataCell(Text(dateFormat.format(p.payment.date))),
-                            DataCell(Text(p.invoice.invoiceNumber)),
-                            DataCell(Text(p.client.name)),
-                            DataCell(Text(currencyFormat.format(p.payment.amount), style: const TextStyle(fontFamily: 'monospace'))),
-                            DataCell(Text(p.payment.method)),
-                            DataCell(Text(p.payment.referenceNumber ?? '-')),
-                            DataCell(
-                              PopupMenuButton<String>(
-                                onSelected: (value) {
-                                  if (value == 'edit') _openEditPaymentDialog(p);
-                                  if (value == 'delete') _confirmAndDeletePayment(p);
-                                },
-                                itemBuilder: (context) => [
-                                  PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
-                                  PopupMenuItem(
-                                    value: 'delete',
-                                    child: Text(l10n.delete, style: const TextStyle(color: AppColors.destructive)),
-                                  ),
-                                ],
-                                icon: const Icon(LucideIcons.ellipsisVertical, size: 16),
-                              ),
-                            ),
-                          ]);
-                        }).toList(),
-                      ),
-                    ),
+                    Builder(builder: (context) {
+                      final source = _PaymentsDataSource(
+                        context: context,
+                        payments: filtered,
+                        currencySymbol: _currencySymbol,
+                        onEdit: _openEditPaymentDialog,
+                        onDelete: _confirmAndDeletePayment,
+                      );
+
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: PaginatedDataTable(
+                          showCheckboxColumn: false,
+                          showFirstLastButtons: true,
+                          availableRowsPerPage: const [10, 20, 50],
+                          rowsPerPage: _rowsPerPage,
+                          onRowsPerPageChanged: (v) {
+                            if (v == null) return;
+                            setState(() => _rowsPerPage = v);
+                          },
+                          columns: const [
+                            DataColumn(label: Text('Date')),
+                            DataColumn(label: Text('Invoice')),
+                            DataColumn(label: Text('Client')),
+                            DataColumn(label: Text('Amount')),
+                            DataColumn(label: Text('Method')),
+                            DataColumn(label: Text('Reference')),
+                            DataColumn(label: Text('Actions')),
+                          ],
+                          source: source,
+                        ),
+                      );
+                    }),
                 ],
               ),
             ),
@@ -231,6 +225,72 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
       },
     );
   }
+}
+
+class _PaymentsDataSource extends DataTableSource {
+  final BuildContext context;
+  final List<PaymentWithInvoiceAndClient> payments;
+  final String currencySymbol;
+  final void Function(PaymentWithInvoiceAndClient payment) onEdit;
+  final void Function(PaymentWithInvoiceAndClient payment) onDelete;
+
+  _PaymentsDataSource({
+    required this.context,
+    required this.payments,
+    required this.currencySymbol,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  DataRow? getRow(int index) {
+    if (index < 0 || index >= payments.length) return null;
+    final p = payments[index];
+
+    final l10n = AppLocalizations.of(context)!;
+    final currencyFormat =
+        NumberFormat.currency(symbol: currencySymbol, decimalDigits: 2);
+    final dateFormat = DateFormat('MMM d, yyyy');
+
+    return DataRow.byIndex(
+      index: index,
+      cells: [
+        DataCell(Text(dateFormat.format(p.payment.date))),
+        DataCell(Text(p.invoice.invoiceNumber)),
+        DataCell(Text(p.client.name)),
+        DataCell(Text(currencyFormat.format(p.payment.amount),
+            style: const TextStyle(fontFamily: 'monospace'))),
+        DataCell(Text(p.payment.method)),
+        DataCell(Text(p.payment.referenceNumber ?? '-')),
+        DataCell(
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'edit') onEdit(p);
+              if (value == 'delete') onDelete(p);
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
+              PopupMenuItem(
+                value: 'delete',
+                child: Text(l10n.delete,
+                    style: const TextStyle(color: AppColors.destructive)),
+              ),
+            ],
+            icon: const Icon(LucideIcons.ellipsisVertical, size: 16),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => payments.length;
+
+  @override
+  int get selectedRowCount => 0;
 }
 
 class _SummaryCard extends StatelessWidget {

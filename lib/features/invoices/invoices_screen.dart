@@ -33,6 +33,7 @@ class _InvoicesScreenState extends State<InvoicesScreen>
   late TabController _tabController;
   late List<String> _tabLabels;
   String _currencySymbol = '\$';
+  int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
 
   @override
   void initState() {
@@ -251,9 +252,32 @@ class _InvoicesScreenState extends State<InvoicesScreen>
       );
     }
 
+    final source = _InvoicesDataSource(
+      context: context,
+      invoices: invoices,
+      currencySymbol: _currencySymbol,
+      statusChipBuilder: _buildStatusChip,
+      onEdit: (id) => _navigateToInvoiceEditor(invoiceId: id),
+      onRecordPayment: (iwc) {
+        showDialog(
+          context: context,
+          builder: (context) => AddEditPaymentDialog(initialInvoice: iwc),
+        );
+      },
+      onDelete: _confirmAndDeleteInvoice,
+    );
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: DataTable(
+      child: PaginatedDataTable(
+        showCheckboxColumn: false,
+        showFirstLastButtons: true,
+        availableRowsPerPage: const [10, 20, 50],
+        rowsPerPage: _rowsPerPage,
+        onRowsPerPageChanged: (v) {
+          if (v == null) return;
+          setState(() => _rowsPerPage = v);
+        },
         columns: [
           DataColumn(label: Text(AppLocalizations.of(context)!.invoiceNumber)),
           DataColumn(label: Text(AppLocalizations.of(context)!.client)),
@@ -263,56 +287,9 @@ class _InvoicesScreenState extends State<InvoicesScreen>
           DataColumn(label: Text(AppLocalizations.of(context)!.dueDate)),
           DataColumn(label: Text(AppLocalizations.of(context)!.actions)),
         ],
-        rows: invoices.map((iwc) => _buildDataRow(iwc)).toList(),
+        source: source,
       ),
     );
-  }
-
-  DataRow _buildDataRow(InvoiceWithStats iwc) {
-    final currencyFormat = NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
-    final dateFormat = DateFormat('MMM d, yyyy');
-    
-    return DataRow(cells: [
-      DataCell(Text(iwc.invoice.invoiceNumber, style: const TextStyle(fontWeight: FontWeight.w500))),
-      DataCell(Text(iwc.client.name)),
-      DataCell(Text(currencyFormat.format(iwc.invoice.totalAmount), style: const TextStyle(fontFamily: 'monospace'))),
-      DataCell(Text(
-        currencyFormat.format(iwc.balance),
-        style: TextStyle(
-          fontFamily: 'monospace',
-          color: iwc.balance > 0 ? AppColors.destructive : AppColors.success,
-          fontWeight: iwc.balance > 0 ? FontWeight.bold : FontWeight.normal,
-        ),
-      )),
-      DataCell(_buildStatusChip(iwc.invoice.status)),
-      DataCell(Text(dateFormat.format(iwc.invoice.dueDate))),
-      DataCell(PopupMenuButton<String>(
-        onSelected: (value) {
-          if (value == 'edit') {
-            _navigateToInvoiceEditor(invoiceId: iwc.invoice.id);
-          } else if (value == 'record_payment') {
-            showDialog(
-              context: context,
-              builder: (context) => AddEditPaymentDialog(initialInvoice: iwc),
-            );
-          } else if (value == 'delete') {
-            _confirmAndDeleteInvoice(iwc.invoice);
-          }
-        },
-        itemBuilder: (context) => <PopupMenuEntry<String>>[
-          PopupMenuItem<String>(
-              value: 'edit', child: Text(AppLocalizations.of(context)!.edit)),
-          PopupMenuItem<String>(
-              value: 'record_payment',
-              child: Text(AppLocalizations.of(context)!.recordPayment)),
-          PopupMenuItem<String>(
-              value: 'delete',
-              child: Text(AppLocalizations.of(context)!.delete,
-                  style: const TextStyle(color: AppColors.destructive))),
-        ],
-        icon: const Icon(LucideIcons.ellipsisVertical, size: 16),
-      )),
-    ]);
   }
 
   Widget _buildStatusChip(String status) {
@@ -349,4 +326,84 @@ class _InvoicesScreenState extends State<InvoicesScreen>
       visualDensity: VisualDensity.compact,
     );
   }
+}
+
+class _InvoicesDataSource extends DataTableSource {
+  final BuildContext context;
+  final List<InvoiceWithStats> invoices;
+  final String currencySymbol;
+
+  final Widget Function(String status) statusChipBuilder;
+  final void Function(int invoiceId) onEdit;
+  final void Function(InvoiceWithStats iwc) onRecordPayment;
+  final void Function(Invoice invoice) onDelete;
+
+  _InvoicesDataSource({
+    required this.context,
+    required this.invoices,
+    required this.currencySymbol,
+    required this.statusChipBuilder,
+    required this.onEdit,
+    required this.onRecordPayment,
+    required this.onDelete,
+  });
+
+  @override
+  DataRow? getRow(int index) {
+    if (index < 0 || index >= invoices.length) return null;
+    final iwc = invoices[index];
+
+    final currencyFormat =
+        NumberFormat.currency(symbol: currencySymbol, decimalDigits: 2);
+    final dateFormat = DateFormat('MMM d, yyyy');
+    final l10n = AppLocalizations.of(context)!;
+
+    return DataRow.byIndex(
+      index: index,
+      cells: [
+        DataCell(Text(iwc.invoice.invoiceNumber,
+            style: const TextStyle(fontWeight: FontWeight.w500))),
+        DataCell(Text(iwc.client.name)),
+        DataCell(Text(currencyFormat.format(iwc.invoice.totalAmount),
+            style: const TextStyle(fontFamily: 'monospace'))),
+        DataCell(Text(
+          currencyFormat.format(iwc.balance),
+          style: TextStyle(
+            fontFamily: 'monospace',
+            color: iwc.balance > 0 ? AppColors.destructive : AppColors.success,
+            fontWeight: iwc.balance > 0 ? FontWeight.bold : FontWeight.normal,
+          ),
+        )),
+        DataCell(statusChipBuilder(iwc.invoice.status)),
+        DataCell(Text(dateFormat.format(iwc.invoice.dueDate))),
+        DataCell(PopupMenuButton<String>(
+          onSelected: (value) {
+            if (value == 'edit') onEdit(iwc.invoice.id);
+            if (value == 'record_payment') onRecordPayment(iwc);
+            if (value == 'delete') onDelete(iwc.invoice);
+          },
+          itemBuilder: (context) => <PopupMenuEntry<String>>[
+            PopupMenuItem<String>(value: 'edit', child: Text(l10n.edit)),
+            PopupMenuItem<String>(
+                value: 'record_payment', child: Text(l10n.recordPayment)),
+            PopupMenuItem<String>(
+              value: 'delete',
+              child: Text(l10n.delete,
+                  style: const TextStyle(color: AppColors.destructive)),
+            ),
+          ],
+          icon: const Icon(LucideIcons.ellipsisVertical, size: 16),
+        )),
+      ],
+    );
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => invoices.length;
+
+  @override
+  int get selectedRowCount => 0;
 }
