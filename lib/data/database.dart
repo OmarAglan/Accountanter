@@ -50,7 +50,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 10; // INCREMENT SCHEMA VERSION
+  int get schemaVersion => 11; // INCREMENT SCHEMA VERSION
 
   @override
   MigrationStrategy get migration {
@@ -109,6 +109,9 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 10) {
           await m.addColumn(invoices, invoices.discountAmount);
+        }
+        if (from < 11) {
+          await m.addColumn(lineItems, lineItems.inventoryItemId);
         }
       },
     );
@@ -254,15 +257,56 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> createOrUpdateInvoice(
-      InvoicesCompanion invoice, List<LineItemsCompanion> items) {
+    InvoicesCompanion invoice,
+    List<LineItemsCompanion> items,
+  ) {
     return transaction(() async {
-      final invoiceId =
-          await into(invoices).insert(invoice, mode: InsertMode.insertOrReplace);
+      final int invoiceId;
+
+      if (invoice.id.present) {
+        invoiceId = invoice.id.value;
+        await update(invoices).replace(invoice);
+      } else {
+        invoiceId = await into(invoices).insert(invoice);
+      }
+
+      final previousLineItems =
+          await (select(lineItems)..where((l) => l.invoiceId.equals(invoiceId)))
+              .get();
+
+      for (final li in previousLineItems) {
+        final inventoryItemId = li.inventoryItemId;
+        if (inventoryItemId == null) continue;
+        await _adjustInventoryQuantity(inventoryItemId, li.quantity);
+      }
+
       await (delete(lineItems)..where((l) => l.invoiceId.equals(invoiceId))).go();
+
       for (final item in items) {
         await into(lineItems).insert(item.copyWith(invoiceId: Value(invoiceId)));
+
+        final inventoryItemId =
+            item.inventoryItemId.present ? item.inventoryItemId.value : null;
+        if (inventoryItemId == null) continue;
+
+        await _adjustInventoryQuantity(inventoryItemId, -item.quantity.value);
       }
     });
+  }
+
+  Future<void> _adjustInventoryQuantity(int inventoryItemId, int delta) async {
+    final existing = await (select(inventoryItems)
+          ..where((i) => i.id.equals(inventoryItemId)))
+        .getSingleOrNull();
+    if (existing == null) return;
+
+    final next = existing.quantity + delta;
+    if (next < 0) {
+      throw StateError('Insufficient stock for "${existing.name}".');
+    }
+
+    await (update(inventoryItems)..where((i) => i.id.equals(inventoryItemId)))
+        .write(InventoryItemsCompanion(quantity: Value(next)));
   }
 
   Future<void> deleteInvoice(int invoiceId) {

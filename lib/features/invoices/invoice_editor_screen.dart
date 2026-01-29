@@ -38,7 +38,10 @@ class InvoiceEditorScreen extends StatefulWidget {
 class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
   final _formKey = GlobalKey<FormState>();
   final AppDatabase _database = AppDatabase.instance;
-  
+
+  late final Future<List<Client>> _clientsFuture;
+  late final Stream<List<InventoryItem>> _inventoryItemsStream;
+
   bool get _isEditing => widget.invoiceId != null;
   bool _isLoading = true;
   String _currencySymbol = '\$';
@@ -65,11 +68,15 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
     _notesController = TextEditingController();
     _discountController = TextEditingController(text: '0.00');
 
+    _clientsFuture = _database.getAllClients();
+    _inventoryItemsStream = _database.watchAllInventoryItems();
+
     _loadDefaults();
     if (_isEditing) {
       _loadInvoiceData();
     } else {
-      _invoiceNumberController.text = 'INV-${DateTime.now().millisecondsSinceEpoch}';
+      _invoiceNumberController.text =
+          'INV-${DateTime.now().millisecondsSinceEpoch}';
       _issueDateController.text = DateFormat('yyyy-MM-dd').format(_issueDate);
       _addLineItem();
       setState(() => _isLoading = false);
@@ -110,6 +117,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
             description: item.description,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
+            inventoryItemId: item.inventoryItemId,
           ));
         }
         _isLoading = false;
@@ -203,19 +211,35 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
 
     final lineItemsCompanions = _lineItemControllers.map((controllers) {
       final quantity = int.tryParse(controllers.quantityController.text) ?? 0;
-      final unitPrice = double.tryParse(controllers.unitPriceController.text) ?? 0.0;
+      final unitPrice =
+          double.tryParse(controllers.unitPriceController.text) ?? 0.0;
       return LineItemsCompanion(
+        inventoryItemId: Value(controllers.inventoryItemId),
         description: Value(controllers.descriptionController.text),
         quantity: Value(quantity),
         unitPrice: Value(unitPrice),
         total: Value(quantity * unitPrice),
       );
     }).toList();
-    
-    await _database.createOrUpdateInvoice(invoiceCompanion, lineItemsCompanions);
-    
+
+    try {
+      await _database.createOrUpdateInvoice(invoiceCompanion, lineItemsCompanions);
+    } catch (e) {
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${l10n.error}: $e'),
+          backgroundColor: AppColors.destructive,
+        ),
+      );
+      return;
+    }
+
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${AppLocalizations.of(context)!.invoices} ${AppLocalizations.of(context)!.save} $status')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+              '${AppLocalizations.of(context)!.invoices} ${AppLocalizations.of(context)!.save} $status')));
       Navigator.of(context).pop();
     }
   }
@@ -343,23 +367,29 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
             Text('Bill To', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 12),
             FutureBuilder<List<Client>>(
-              future: _database.getAllClients(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return const CircularProgressIndicator();
-                final clients = snapshot.data!;
-                return DropdownButtonFormField<Client>(
-                  key: ValueKey(_selectedClient?.id),
-                  initialValue: _selectedClient,
-                  hint: Text(AppLocalizations.of(context)!.selectClient),
-                  items: clients.map((client) => DropdownMenuItem(
-                    value: client,
-                    child: Text(client.name),
-                  )).toList(),
-                  onChanged: (client) => setState(() => _selectedClient = client),
-                   validator: (value) => value == null ? AppLocalizations.of(context)!.fieldRequired : null,
-                );
-              }
-            ),
+                future: _clientsFuture,
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const CircularProgressIndicator();
+                  }
+                  final clients = snapshot.data!;
+                  return DropdownButtonFormField<Client>(
+                    key: ValueKey(_selectedClient?.id),
+                    initialValue: _selectedClient,
+                    hint: Text(AppLocalizations.of(context)!.selectClient),
+                    items: clients
+                        .map((client) => DropdownMenuItem(
+                              value: client,
+                              child: Text(client.name),
+                            ))
+                        .toList(),
+                    onChanged: (client) =>
+                        setState(() => _selectedClient = client),
+                    validator: (value) => value == null
+                        ? AppLocalizations.of(context)!.fieldRequired
+                        : null,
+                  );
+                }),
           ],
         ),
       ),
@@ -407,45 +437,73 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
+        child: StreamBuilder<List<InventoryItem>>(
+          stream: _inventoryItemsStream,
+          builder: (context, snapshot) {
+            final inventoryItems = snapshot.data ?? const <InventoryItem>[];
+            return Column(
               children: [
-                Expanded(flex: 4, child: Text(AppLocalizations.of(context)!.description, style: const TextStyle(fontWeight: FontWeight.bold))),
-                Expanded(flex: 1, child: Text(AppLocalizations.of(context)!.quantity, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
-                Expanded(flex: 2, child: Text(AppLocalizations.of(context)!.price, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.end)),
-                Expanded(flex: 2, child: Text(AppLocalizations.of(context)!.total, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.end)),
-                const SizedBox(width: 48),
+                Row(
+                  children: [
+                    Expanded(
+                        flex: 4,
+                        child: Text(AppLocalizations.of(context)!.description,
+                            style: const TextStyle(fontWeight: FontWeight.bold))),
+                    Expanded(
+                        flex: 1,
+                        child: Text(AppLocalizations.of(context)!.quantity,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center)),
+                    Expanded(
+                        flex: 2,
+                        child: Text(AppLocalizations.of(context)!.price,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.end)),
+                    Expanded(
+                        flex: 2,
+                        child: Text(AppLocalizations.of(context)!.total,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.end)),
+                    const SizedBox(width: 48),
+                  ],
+                ),
+                const Divider(),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _lineItemControllers.length,
+                  itemBuilder: (context, index) {
+                    return _buildLineItemRow(index, inventoryItems);
+                  },
+                ),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: _addLineItem,
+                  icon: const Icon(LucideIcons.plus, size: 16),
+                  label: Text(AppLocalizations.of(context)!.addItem),
+                  style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(40)),
+                ),
               ],
-            ),
-            const Divider(),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _lineItemControllers.length,
-              itemBuilder: (context, index) {
-                return _buildLineItemRow(index);
-              },
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: _addLineItem,
-              icon: const Icon(LucideIcons.plus, size: 16),
-              label: Text(AppLocalizations.of(context)!.addItem),
-              style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(40)),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
   }
   
-  Widget _buildLineItemRow(int index) {
+  Widget _buildLineItemRow(int index, List<InventoryItem> inventoryItems) {
     final controllers = _lineItemControllers[index];
     final quantity = int.tryParse(controllers.quantityController.text) ?? 0;
-    final unitPrice = double.tryParse(controllers.unitPriceController.text) ?? 0.0;
+    final unitPrice =
+        double.tryParse(controllers.unitPriceController.text) ?? 0.0;
     final total = quantity * unitPrice;
     final l10n = AppLocalizations.of(context)!;
+
+    final selectedId = controllers.inventoryItemId;
+    final hasSelected =
+        selectedId != null && inventoryItems.any((i) => i.id == selectedId);
+    final effectiveSelectedId = hasSelected ? selectedId : null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -456,88 +514,105 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
             flex: 4,
             child: Column(
               children: [
-                StreamBuilder<List<InventoryItem>>(
-                  stream: _database.watchAllInventoryItems(),
-                  builder: (context, snapshot) {
-                    final items = snapshot.data ?? const <InventoryItem>[];
-                    if (items.isEmpty) return const SizedBox.shrink();
-
-                    final selectedId = controllers.inventoryItemId;
-                    final hasSelected = selectedId != null && items.any((i) => i.id == selectedId);
-                    final effectiveSelectedId = hasSelected ? selectedId : null;
-
-                    return DropdownButtonFormField<int?>(
-                      key: ValueKey('line:$index:inventory:${effectiveSelectedId ?? 'none'}'),
-                      initialValue: effectiveSelectedId,
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        isDense: true,
-                        labelText: '${l10n.inventory} ${l10n.items}',
+                if (inventoryItems.isNotEmpty)
+                  DropdownButtonFormField<int?>(
+                    key: ValueKey(
+                        'line:$index:inventory:${effectiveSelectedId ?? 'none'}'),
+                    initialValue: effectiveSelectedId,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      labelText: '${l10n.inventory} ${l10n.items}',
+                    ),
+                    items: [
+                      DropdownMenuItem<int?>(
+                        value: null,
+                        child: Text('${l10n.pleaseSelect} (${l10n.optional})'),
                       ),
-                      items: [
-                        DropdownMenuItem<int?>(
-                          value: null,
-                          child: Text('${l10n.pleaseSelect} (${l10n.optional})'),
-                        ),
-                        ...items.map((item) {
-                          final sku = item.sku;
-                          final label = (sku != null && sku.trim().isNotEmpty) ? '${item.name} • $sku' : item.name;
-                          return DropdownMenuItem<int?>(value: item.id, child: Text(label, overflow: TextOverflow.ellipsis));
-                        }),
-                      ],
-                      onChanged: (id) {
-                        setState(() {
-                          controllers.inventoryItemId = id;
-                          if (id == null) return;
-                          final selected = items.firstWhere((i) => i.id == id);
-                          controllers.descriptionController.text = selected.name;
-                          controllers.unitPriceController.text = selected.unitPrice.toStringAsFixed(2);
-                        });
-                        _updateTotals();
-                      },
-                    );
-                  },
-                ),
-                const SizedBox(height: 8),
+                      ...inventoryItems.map((item) {
+                        final sku = item.sku;
+                        final label = (sku != null && sku.trim().isNotEmpty)
+                            ? '${item.name} • $sku'
+                            : item.name;
+                        return DropdownMenuItem<int?>(
+                          value: item.id,
+                          child:
+                              Text(label, overflow: TextOverflow.ellipsis),
+                        );
+                      }),
+                    ],
+                    onChanged: (id) {
+                      setState(() {
+                        controllers.inventoryItemId = id;
+                        if (id == null) return;
+                        final selected =
+                            inventoryItems.firstWhere((i) => i.id == id);
+                        controllers.descriptionController.text = selected.name;
+                        controllers.unitPriceController.text =
+                            selected.unitPrice.toStringAsFixed(2);
+                      });
+                      _updateTotals();
+                    },
+                  ),
+                if (inventoryItems.isNotEmpty) const SizedBox(height: 8),
                 TextFormField(
                   controller: controllers.descriptionController,
-                  decoration: InputDecoration(isDense: true, hintText: l10n.description),
+                  decoration:
+                      InputDecoration(isDense: true, hintText: l10n.description),
                   validator: (v) => v!.isEmpty ? l10n.required : null,
                 ),
               ],
             ),
           ),
           const SizedBox(width: 8),
-          Expanded(flex: 1, child: TextFormField(
-            controller: controllers.quantityController,
-            onChanged: (_) => _updateTotals(),
-            textAlign: TextAlign.center,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: const InputDecoration(isDense: true),
-            validator: (v) => (v == null || v.isEmpty || int.tryParse(v) == null) ? '!' : null,
-          )),
+          Expanded(
+              flex: 1,
+              child: TextFormField(
+                controller: controllers.quantityController,
+                onChanged: (_) => _updateTotals(),
+                textAlign: TextAlign.center,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: const InputDecoration(isDense: true),
+                validator: (v) => (v == null ||
+                        v.isEmpty ||
+                        int.tryParse(v) == null)
+                    ? '!'
+                    : null,
+              )),
           const SizedBox(width: 8),
-          Expanded(flex: 2, child: TextFormField(
-            controller: controllers.unitPriceController,
-            onChanged: (_) => _updateTotals(),
-            textAlign: TextAlign.end,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-            decoration: InputDecoration(isDense: true, prefixText: _currencySymbol),
-            validator: (v) => (v == null || v.isEmpty || double.tryParse(v) == null) ? '!' : null,
-          )),
+          Expanded(
+              flex: 2,
+              child: TextFormField(
+                controller: controllers.unitPriceController,
+                onChanged: (_) => _updateTotals(),
+                textAlign: TextAlign.end,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))
+                ],
+                decoration:
+                    InputDecoration(isDense: true, prefixText: _currencySymbol),
+                validator: (v) =>
+                    (v == null || v.isEmpty || double.tryParse(v) == null)
+                        ? '!'
+                        : null,
+              )),
           const SizedBox(width: 8),
-          Expanded(flex: 2, child: Padding(
-            padding: const EdgeInsets.only(top: 12.0),
-            child: Text(
-              NumberFormat.currency(symbol: _currencySymbol).format(total),
-              textAlign: TextAlign.end,
-              style: const TextStyle(fontFamily: 'monospace'),
-            ),
-          )),
+          Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 12.0),
+                child: Text(
+                  NumberFormat.currency(symbol: _currencySymbol).format(total),
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(fontFamily: 'monospace'),
+                ),
+              )),
           IconButton(
-            icon: const Icon(LucideIcons.trash2, size: 18, color: AppColors.destructive),
+            icon: const Icon(LucideIcons.trash2,
+                size: 18, color: AppColors.destructive),
             onPressed: () => _removeLineItem(index),
           ),
         ],

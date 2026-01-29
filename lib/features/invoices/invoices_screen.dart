@@ -16,19 +16,31 @@ class InvoicesScreen extends StatefulWidget {
   State<InvoicesScreen> createState() => _InvoicesScreenState();
 }
 
-class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProviderStateMixin {
+class _InvoicesScreenState extends State<InvoicesScreen>
+    with SingleTickerProviderStateMixin {
+  static const List<String?> _statusFilters = <String?>[
+    null, // All
+    'Paid',
+    'Pending',
+    'Overdue',
+    'Draft',
+  ];
+
   final AppDatabase _database = AppDatabase.instance;
   late Stream<List<InvoiceWithStats>> _invoicesStream;
   String _searchTerm = '';
   late TabController _tabController;
-  late List<String> _tabs;
+  late List<String> _tabLabels;
   String _currencySymbol = '\$';
 
   @override
   void initState() {
     super.initState();
-    _tabs = ['All', 'Paid', 'Pending', 'Overdue', 'Draft'];
-    _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabLabels = const ['All', 'Paid', 'Pending', 'Overdue', 'Draft'];
+    _tabController = TabController(length: _statusFilters.length, vsync: this)
+      ..addListener(() {
+        if (mounted) setState(() {});
+      });
     _invoicesStream = _database.watchAllInvoicesWithStats();
     _loadCurrencySymbol();
   }
@@ -43,7 +55,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
   void didChangeDependencies() {
     super.didChangeDependencies();
     final l10n = AppLocalizations.of(context)!;
-    _tabs = [l10n.all, l10n.paid, l10n.pending, l10n.overdue, l10n.draft];
+    _tabLabels = [l10n.all, l10n.paid, l10n.pending, l10n.overdue, l10n.draft];
   }
 
   @override
@@ -112,12 +124,14 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
   }
 
   List<InvoiceWithStats> _filterInvoices(List<InvoiceWithStats> allInvoices) {
-    final status = _tabs[_tabController.index];
+    final statusFilter = _statusFilters[_tabController.index];
     return allInvoices.where((iwc) {
       final searchLower = _searchTerm.toLowerCase();
       final clientMatches = iwc.client.name.toLowerCase().contains(searchLower);
-      final numberMatches = iwc.invoice.invoiceNumber.toLowerCase().contains(searchLower);
-      final statusMatches = (status == 'All') || (iwc.invoice.status == status);
+      final numberMatches =
+          iwc.invoice.invoiceNumber.toLowerCase().contains(searchLower);
+      final statusMatches =
+          statusFilter == null || (iwc.invoice.status == statusFilter);
       return (clientMatches || numberMatches) && statusMatches;
     }).toList();
   }
@@ -201,13 +215,23 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: TextField(
-          onChanged: (value) => setState(() => _searchTerm = value),
-          decoration: InputDecoration(
-            hintText: AppLocalizations.of(context)!.searchInvoices,
-            prefixIcon: Icon(LucideIcons.search, size: 16),
-            isDense: true,
-          ),
+        child: Column(
+          children: [
+            TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              tabs: _tabLabels.map((t) => Tab(text: t)).toList(),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              onChanged: (value) => setState(() => _searchTerm = value),
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context)!.searchInvoices,
+                prefixIcon: Icon(LucideIcons.search, size: 16),
+                isDense: true,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -279,16 +303,33 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
   }
 
   Widget _buildStatusChip(String status) {
+    final l10n = AppLocalizations.of(context)!;
+
     Color color;
+    String label;
     switch (status) {
-      case 'Paid': color = AppColors.success; break;
-      case 'Pending': color = AppColors.warning; break;
-      case 'Overdue': color = AppColors.destructive; break;
-      case 'Draft': color = AppColors.mutedForeground; break;
-      default: color = AppColors.mutedForeground;
+      case 'Paid':
+        color = AppColors.success;
+        label = l10n.paid;
+        break;
+      case 'Pending':
+        color = AppColors.warning;
+        label = l10n.pending;
+        break;
+      case 'Overdue':
+        color = AppColors.destructive;
+        label = l10n.overdue;
+        break;
+      case 'Draft':
+        color = AppColors.mutedForeground;
+        label = l10n.draft;
+        break;
+      default:
+        color = AppColors.mutedForeground;
+        label = status;
     }
     return Chip(
-      label: Text(status),
+      label: Text(label),
       backgroundColor: color.withAlpha(26),
       labelStyle: TextStyle(color: color, fontWeight: FontWeight.w500),
       padding: const EdgeInsets.symmetric(horizontal: 8),

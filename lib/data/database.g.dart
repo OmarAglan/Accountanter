@@ -4106,6 +4106,20 @@ class $LineItemsTable extends LineItems
       'REFERENCES invoices (id)',
     ),
   );
+  static const VerificationMeta _inventoryItemIdMeta = const VerificationMeta(
+    'inventoryItemId',
+  );
+  @override
+  late final GeneratedColumn<int> inventoryItemId = GeneratedColumn<int>(
+    'inventory_item_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES inventory_items (id)',
+    ),
+  );
   static const VerificationMeta _descriptionMeta = const VerificationMeta(
     'description',
   );
@@ -4164,6 +4178,7 @@ class $LineItemsTable extends LineItems
   List<GeneratedColumn> get $columns => [
     id,
     invoiceId,
+    inventoryItemId,
     description,
     quantity,
     unitPrice,
@@ -4192,6 +4207,15 @@ class $LineItemsTable extends LineItems
       );
     } else if (isInserting) {
       context.missing(_invoiceIdMeta);
+    }
+    if (data.containsKey('inventory_item_id')) {
+      context.handle(
+        _inventoryItemIdMeta,
+        inventoryItemId.isAcceptableOrUnknown(
+          data['inventory_item_id']!,
+          _inventoryItemIdMeta,
+        ),
+      );
     }
     if (data.containsKey('description')) {
       context.handle(
@@ -4251,6 +4275,10 @@ class $LineItemsTable extends LineItems
         DriftSqlType.int,
         data['${effectivePrefix}invoice_id'],
       )!,
+      inventoryItemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}inventory_item_id'],
+      ),
       description: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}description'],
@@ -4283,6 +4311,7 @@ class $LineItemsTable extends LineItems
 class LineItem extends DataClass implements Insertable<LineItem> {
   final int id;
   final int invoiceId;
+  final int? inventoryItemId;
   final String description;
   final int quantity;
   final double unitPrice;
@@ -4291,6 +4320,7 @@ class LineItem extends DataClass implements Insertable<LineItem> {
   const LineItem({
     required this.id,
     required this.invoiceId,
+    this.inventoryItemId,
     required this.description,
     required this.quantity,
     required this.unitPrice,
@@ -4302,6 +4332,9 @@ class LineItem extends DataClass implements Insertable<LineItem> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['invoice_id'] = Variable<int>(invoiceId);
+    if (!nullToAbsent || inventoryItemId != null) {
+      map['inventory_item_id'] = Variable<int>(inventoryItemId);
+    }
     map['description'] = Variable<String>(description);
     map['quantity'] = Variable<int>(quantity);
     map['unit_price'] = Variable<double>(unitPrice);
@@ -4314,6 +4347,9 @@ class LineItem extends DataClass implements Insertable<LineItem> {
     return LineItemsCompanion(
       id: Value(id),
       invoiceId: Value(invoiceId),
+      inventoryItemId: inventoryItemId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(inventoryItemId),
       description: Value(description),
       quantity: Value(quantity),
       unitPrice: Value(unitPrice),
@@ -4330,6 +4366,7 @@ class LineItem extends DataClass implements Insertable<LineItem> {
     return LineItem(
       id: serializer.fromJson<int>(json['id']),
       invoiceId: serializer.fromJson<int>(json['invoiceId']),
+      inventoryItemId: serializer.fromJson<int?>(json['inventoryItemId']),
       description: serializer.fromJson<String>(json['description']),
       quantity: serializer.fromJson<int>(json['quantity']),
       unitPrice: serializer.fromJson<double>(json['unitPrice']),
@@ -4343,6 +4380,7 @@ class LineItem extends DataClass implements Insertable<LineItem> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'invoiceId': serializer.toJson<int>(invoiceId),
+      'inventoryItemId': serializer.toJson<int?>(inventoryItemId),
       'description': serializer.toJson<String>(description),
       'quantity': serializer.toJson<int>(quantity),
       'unitPrice': serializer.toJson<double>(unitPrice),
@@ -4354,6 +4392,7 @@ class LineItem extends DataClass implements Insertable<LineItem> {
   LineItem copyWith({
     int? id,
     int? invoiceId,
+    Value<int?> inventoryItemId = const Value.absent(),
     String? description,
     int? quantity,
     double? unitPrice,
@@ -4362,6 +4401,9 @@ class LineItem extends DataClass implements Insertable<LineItem> {
   }) => LineItem(
     id: id ?? this.id,
     invoiceId: invoiceId ?? this.invoiceId,
+    inventoryItemId: inventoryItemId.present
+        ? inventoryItemId.value
+        : this.inventoryItemId,
     description: description ?? this.description,
     quantity: quantity ?? this.quantity,
     unitPrice: unitPrice ?? this.unitPrice,
@@ -4372,6 +4414,9 @@ class LineItem extends DataClass implements Insertable<LineItem> {
     return LineItem(
       id: data.id.present ? data.id.value : this.id,
       invoiceId: data.invoiceId.present ? data.invoiceId.value : this.invoiceId,
+      inventoryItemId: data.inventoryItemId.present
+          ? data.inventoryItemId.value
+          : this.inventoryItemId,
       description: data.description.present
           ? data.description.value
           : this.description,
@@ -4387,6 +4432,7 @@ class LineItem extends DataClass implements Insertable<LineItem> {
     return (StringBuffer('LineItem(')
           ..write('id: $id, ')
           ..write('invoiceId: $invoiceId, ')
+          ..write('inventoryItemId: $inventoryItemId, ')
           ..write('description: $description, ')
           ..write('quantity: $quantity, ')
           ..write('unitPrice: $unitPrice, ')
@@ -4400,6 +4446,7 @@ class LineItem extends DataClass implements Insertable<LineItem> {
   int get hashCode => Object.hash(
     id,
     invoiceId,
+    inventoryItemId,
     description,
     quantity,
     unitPrice,
@@ -4412,6 +4459,7 @@ class LineItem extends DataClass implements Insertable<LineItem> {
       (other is LineItem &&
           other.id == this.id &&
           other.invoiceId == this.invoiceId &&
+          other.inventoryItemId == this.inventoryItemId &&
           other.description == this.description &&
           other.quantity == this.quantity &&
           other.unitPrice == this.unitPrice &&
@@ -4422,6 +4470,7 @@ class LineItem extends DataClass implements Insertable<LineItem> {
 class LineItemsCompanion extends UpdateCompanion<LineItem> {
   final Value<int> id;
   final Value<int> invoiceId;
+  final Value<int?> inventoryItemId;
   final Value<String> description;
   final Value<int> quantity;
   final Value<double> unitPrice;
@@ -4430,6 +4479,7 @@ class LineItemsCompanion extends UpdateCompanion<LineItem> {
   const LineItemsCompanion({
     this.id = const Value.absent(),
     this.invoiceId = const Value.absent(),
+    this.inventoryItemId = const Value.absent(),
     this.description = const Value.absent(),
     this.quantity = const Value.absent(),
     this.unitPrice = const Value.absent(),
@@ -4439,6 +4489,7 @@ class LineItemsCompanion extends UpdateCompanion<LineItem> {
   LineItemsCompanion.insert({
     this.id = const Value.absent(),
     required int invoiceId,
+    this.inventoryItemId = const Value.absent(),
     required String description,
     required int quantity,
     required double unitPrice,
@@ -4452,6 +4503,7 @@ class LineItemsCompanion extends UpdateCompanion<LineItem> {
   static Insertable<LineItem> custom({
     Expression<int>? id,
     Expression<int>? invoiceId,
+    Expression<int>? inventoryItemId,
     Expression<String>? description,
     Expression<int>? quantity,
     Expression<double>? unitPrice,
@@ -4461,6 +4513,7 @@ class LineItemsCompanion extends UpdateCompanion<LineItem> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (invoiceId != null) 'invoice_id': invoiceId,
+      if (inventoryItemId != null) 'inventory_item_id': inventoryItemId,
       if (description != null) 'description': description,
       if (quantity != null) 'quantity': quantity,
       if (unitPrice != null) 'unit_price': unitPrice,
@@ -4472,6 +4525,7 @@ class LineItemsCompanion extends UpdateCompanion<LineItem> {
   LineItemsCompanion copyWith({
     Value<int>? id,
     Value<int>? invoiceId,
+    Value<int?>? inventoryItemId,
     Value<String>? description,
     Value<int>? quantity,
     Value<double>? unitPrice,
@@ -4481,6 +4535,7 @@ class LineItemsCompanion extends UpdateCompanion<LineItem> {
     return LineItemsCompanion(
       id: id ?? this.id,
       invoiceId: invoiceId ?? this.invoiceId,
+      inventoryItemId: inventoryItemId ?? this.inventoryItemId,
       description: description ?? this.description,
       quantity: quantity ?? this.quantity,
       unitPrice: unitPrice ?? this.unitPrice,
@@ -4497,6 +4552,9 @@ class LineItemsCompanion extends UpdateCompanion<LineItem> {
     }
     if (invoiceId.present) {
       map['invoice_id'] = Variable<int>(invoiceId.value);
+    }
+    if (inventoryItemId.present) {
+      map['inventory_item_id'] = Variable<int>(inventoryItemId.value);
     }
     if (description.present) {
       map['description'] = Variable<String>(description.value);
@@ -4521,6 +4579,7 @@ class LineItemsCompanion extends UpdateCompanion<LineItem> {
     return (StringBuffer('LineItemsCompanion(')
           ..write('id: $id, ')
           ..write('invoiceId: $invoiceId, ')
+          ..write('inventoryItemId: $inventoryItemId, ')
           ..write('description: $description, ')
           ..write('quantity: $quantity, ')
           ..write('unitPrice: $unitPrice, ')
@@ -9235,6 +9294,27 @@ final class $$InventoryItemsTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static MultiTypedResultKey<$LineItemsTable, List<LineItem>>
+  _lineItemsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.lineItems,
+    aliasName: $_aliasNameGenerator(
+      db.inventoryItems.id,
+      db.lineItems.inventoryItemId,
+    ),
+  );
+
+  $$LineItemsTableProcessedTableManager get lineItemsRefs {
+    final manager = $$LineItemsTableTableManager(
+      $_db,
+      $_db.lineItems,
+    ).filter((f) => f.inventoryItemId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_lineItemsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$InventoryItemsTableFilterComposer
@@ -9325,6 +9405,31 @@ class $$InventoryItemsTableFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> lineItemsRefs(
+    Expression<bool> Function($$LineItemsTableFilterComposer f) f,
+  ) {
+    final $$LineItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.lineItems,
+      getReferencedColumn: (t) => t.inventoryItemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LineItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.lineItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 }
 
@@ -9494,6 +9599,31 @@ class $$InventoryItemsTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> lineItemsRefs<T extends Object>(
+    Expression<T> Function($$LineItemsTableAnnotationComposer a) f,
+  ) {
+    final $$LineItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.lineItems,
+      getReferencedColumn: (t) => t.inventoryItemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LineItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.lineItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$InventoryItemsTableTableManager
@@ -9509,7 +9639,11 @@ class $$InventoryItemsTableTableManager
           $$InventoryItemsTableUpdateCompanionBuilder,
           (InventoryItem, $$InventoryItemsTableReferences),
           InventoryItem,
-          PrefetchHooks Function({bool categoryId, bool supplierId})
+          PrefetchHooks Function({
+            bool categoryId,
+            bool supplierId,
+            bool lineItemsRefs,
+          })
         > {
   $$InventoryItemsTableTableManager(
     _$AppDatabase db,
@@ -9576,62 +9710,91 @@ class $$InventoryItemsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({categoryId = false, supplierId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (categoryId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.categoryId,
-                                referencedTable: $$InventoryItemsTableReferences
-                                    ._categoryIdTable(db),
-                                referencedColumn:
-                                    $$InventoryItemsTableReferences
-                                        ._categoryIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
-                    if (supplierId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.supplierId,
-                                referencedTable: $$InventoryItemsTableReferences
-                                    ._supplierIdTable(db),
-                                referencedColumn:
-                                    $$InventoryItemsTableReferences
-                                        ._supplierIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
+          prefetchHooksCallback:
+              ({
+                categoryId = false,
+                supplierId = false,
+                lineItemsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [if (lineItemsRefs) db.lineItems],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (categoryId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.categoryId,
+                                    referencedTable:
+                                        $$InventoryItemsTableReferences
+                                            ._categoryIdTable(db),
+                                    referencedColumn:
+                                        $$InventoryItemsTableReferences
+                                            ._categoryIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (supplierId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.supplierId,
+                                    referencedTable:
+                                        $$InventoryItemsTableReferences
+                                            ._supplierIdTable(db),
+                                    referencedColumn:
+                                        $$InventoryItemsTableReferences
+                                            ._supplierIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (lineItemsRefs)
+                        await $_getPrefetchedData<
+                          InventoryItem,
+                          $InventoryItemsTable,
+                          LineItem
+                        >(
+                          currentTable: table,
+                          referencedTable: $$InventoryItemsTableReferences
+                              ._lineItemsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$InventoryItemsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).lineItemsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.inventoryItemId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -9648,7 +9811,11 @@ typedef $$InventoryItemsTableProcessedTableManager =
       $$InventoryItemsTableUpdateCompanionBuilder,
       (InventoryItem, $$InventoryItemsTableReferences),
       InventoryItem,
-      PrefetchHooks Function({bool categoryId, bool supplierId})
+      PrefetchHooks Function({
+        bool categoryId,
+        bool supplierId,
+        bool lineItemsRefs,
+      })
     >;
 typedef $$InvoicesTableCreateCompanionBuilder =
     InvoicesCompanion Function({
@@ -10300,6 +10467,7 @@ typedef $$LineItemsTableCreateCompanionBuilder =
     LineItemsCompanion Function({
       Value<int> id,
       required int invoiceId,
+      Value<int?> inventoryItemId,
       required String description,
       required int quantity,
       required double unitPrice,
@@ -10310,6 +10478,7 @@ typedef $$LineItemsTableUpdateCompanionBuilder =
     LineItemsCompanion Function({
       Value<int> id,
       Value<int> invoiceId,
+      Value<int?> inventoryItemId,
       Value<String> description,
       Value<int> quantity,
       Value<double> unitPrice,
@@ -10334,6 +10503,28 @@ final class $$LineItemsTableReferences
       $_db.invoices,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_invoiceIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $InventoryItemsTable _inventoryItemIdTable(_$AppDatabase db) =>
+      db.inventoryItems.createAlias(
+        $_aliasNameGenerator(
+          db.lineItems.inventoryItemId,
+          db.inventoryItems.id,
+        ),
+      );
+
+  $$InventoryItemsTableProcessedTableManager? get inventoryItemId {
+    final $_column = $_itemColumn<int>('inventory_item_id');
+    if ($_column == null) return null;
+    final manager = $$InventoryItemsTableTableManager(
+      $_db,
+      $_db.inventoryItems,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_inventoryItemIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -10394,6 +10585,29 @@ class $$LineItemsTableFilterComposer
           }) => $$InvoicesTableFilterComposer(
             $db: $db,
             $table: $db.invoices,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$InventoryItemsTableFilterComposer get inventoryItemId {
+    final $$InventoryItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.inventoryItemId,
+      referencedTable: $db.inventoryItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InventoryItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.inventoryItems,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -10465,6 +10679,29 @@ class $$LineItemsTableOrderingComposer
     );
     return composer;
   }
+
+  $$InventoryItemsTableOrderingComposer get inventoryItemId {
+    final $$InventoryItemsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.inventoryItemId,
+      referencedTable: $db.inventoryItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InventoryItemsTableOrderingComposer(
+            $db: $db,
+            $table: $db.inventoryItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$LineItemsTableAnnotationComposer
@@ -10518,6 +10755,29 @@ class $$LineItemsTableAnnotationComposer
     );
     return composer;
   }
+
+  $$InventoryItemsTableAnnotationComposer get inventoryItemId {
+    final $$InventoryItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.inventoryItemId,
+      referencedTable: $db.inventoryItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InventoryItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.inventoryItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$LineItemsTableTableManager
@@ -10533,7 +10793,7 @@ class $$LineItemsTableTableManager
           $$LineItemsTableUpdateCompanionBuilder,
           (LineItem, $$LineItemsTableReferences),
           LineItem,
-          PrefetchHooks Function({bool invoiceId})
+          PrefetchHooks Function({bool invoiceId, bool inventoryItemId})
         > {
   $$LineItemsTableTableManager(_$AppDatabase db, $LineItemsTable table)
     : super(
@@ -10550,6 +10810,7 @@ class $$LineItemsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<int> invoiceId = const Value.absent(),
+                Value<int?> inventoryItemId = const Value.absent(),
                 Value<String> description = const Value.absent(),
                 Value<int> quantity = const Value.absent(),
                 Value<double> unitPrice = const Value.absent(),
@@ -10558,6 +10819,7 @@ class $$LineItemsTableTableManager
               }) => LineItemsCompanion(
                 id: id,
                 invoiceId: invoiceId,
+                inventoryItemId: inventoryItemId,
                 description: description,
                 quantity: quantity,
                 unitPrice: unitPrice,
@@ -10568,6 +10830,7 @@ class $$LineItemsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required int invoiceId,
+                Value<int?> inventoryItemId = const Value.absent(),
                 required String description,
                 required int quantity,
                 required double unitPrice,
@@ -10576,6 +10839,7 @@ class $$LineItemsTableTableManager
               }) => LineItemsCompanion.insert(
                 id: id,
                 invoiceId: invoiceId,
+                inventoryItemId: inventoryItemId,
                 description: description,
                 quantity: quantity,
                 unitPrice: unitPrice,
@@ -10590,47 +10854,61 @@ class $$LineItemsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({invoiceId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (invoiceId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.invoiceId,
-                                referencedTable: $$LineItemsTableReferences
-                                    ._invoiceIdTable(db),
-                                referencedColumn: $$LineItemsTableReferences
-                                    ._invoiceIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
+          prefetchHooksCallback:
+              ({invoiceId = false, inventoryItemId = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (invoiceId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.invoiceId,
+                                    referencedTable: $$LineItemsTableReferences
+                                        ._invoiceIdTable(db),
+                                    referencedColumn: $$LineItemsTableReferences
+                                        ._invoiceIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (inventoryItemId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.inventoryItemId,
+                                    referencedTable: $$LineItemsTableReferences
+                                        ._inventoryItemIdTable(db),
+                                    referencedColumn: $$LineItemsTableReferences
+                                        ._inventoryItemIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -10647,7 +10925,7 @@ typedef $$LineItemsTableProcessedTableManager =
       $$LineItemsTableUpdateCompanionBuilder,
       (LineItem, $$LineItemsTableReferences),
       LineItem,
-      PrefetchHooks Function({bool invoiceId})
+      PrefetchHooks Function({bool invoiceId, bool inventoryItemId})
     >;
 typedef $$PaymentsTableCreateCompanionBuilder =
     PaymentsCompanion Function({
