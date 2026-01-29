@@ -6,6 +6,7 @@ import 'package:accountanter/data/database.dart';
 import 'package:accountanter/theme/app_colors.dart';
 import 'widgets/invoice_summary_card.dart';
 import 'invoice_editor_screen.dart';
+import '../main/widgets/empty_state.dart';
 
 class InvoicesScreen extends StatefulWidget {
   const InvoicesScreen({super.key});
@@ -16,7 +17,7 @@ class InvoicesScreen extends StatefulWidget {
 
 class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProviderStateMixin {
   final AppDatabase _database = AppDatabase.instance;
-  late Stream<List<InvoiceWithClient>> _invoicesStream;
+  late Stream<List<InvoiceWithStats>> _invoicesStream;
   String _searchTerm = '';
   late TabController _tabController;
   late List<String> _tabs;
@@ -27,7 +28,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     super.initState();
     _tabs = ['All', 'Paid', 'Pending', 'Overdue', 'Draft'];
     _tabController = TabController(length: _tabs.length, vsync: this);
-    _invoicesStream = _database.watchAllInvoicesWithClient();
+    _invoicesStream = _database.watchAllInvoicesWithStats();
     _loadCurrencySymbol();
   }
 
@@ -87,7 +88,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<InvoiceWithClient>>(
+    return StreamBuilder<List<InvoiceWithStats>>(
       stream: _invoicesStream,
       builder: (context, snapshot) {
         final allInvoices = snapshot.data ?? [];
@@ -107,7 +108,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     );
   }
 
-  List<InvoiceWithClient> _filterInvoices(List<InvoiceWithClient> allInvoices) {
+  List<InvoiceWithStats> _filterInvoices(List<InvoiceWithStats> allInvoices) {
     final status = _tabs[_tabController.index];
     return allInvoices.where((iwc) {
       final searchLower = _searchTerm.toLowerCase();
@@ -138,7 +139,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildSummaryCards(List<InvoiceWithClient> invoices) {
+  Widget _buildSummaryCards(List<InvoiceWithStats> invoices) {
     final totalRevenue = invoices.where((i) => i.invoice.status == 'Paid').fold(0.0, (sum, i) => sum + i.invoice.totalAmount);
     final pendingRevenue = invoices.where((i) => i.invoice.status == 'Pending').fold(0.0, (sum, i) => sum + i.invoice.totalAmount);
     final overdueRevenue = invoices.where((i) => i.invoice.status == 'Overdue').fold(0.0, (sum, i) => sum + i.invoice.totalAmount);
@@ -183,7 +184,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildInvoicesTable(BuildContext context, List<InvoiceWithClient> allInvoices) {
+  Widget _buildInvoicesTable(BuildContext context, List<InvoiceWithStats> allInvoices) {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -208,12 +209,16 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     );
   }
   
-  Widget _buildDataTable(List<InvoiceWithClient> invoices) {
+  Widget _buildDataTable(List<InvoiceWithStats> invoices) {
     if (invoices.isEmpty) {
-      return Center(child: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Text(AppLocalizations.of(context)!.noInvoices),
-      ));
+      final l10n = AppLocalizations.of(context)!;
+      return EmptyState(
+        icon: LucideIcons.fileText,
+        title: l10n.noInvoices,
+        description: 'No invoices found. Create your first invoice to get started.',
+        actionLabel: l10n.newInvoice,
+        onAction: _navigateToInvoiceEditor,
+      );
     }
 
     return SingleChildScrollView(
@@ -223,6 +228,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
           DataColumn(label: Text(AppLocalizations.of(context)!.invoiceNumber)),
           DataColumn(label: Text(AppLocalizations.of(context)!.client)),
           DataColumn(label: Text(AppLocalizations.of(context)!.amount)),
+          DataColumn(label: Text(AppLocalizations.of(context)!.outstandingBalance)),
           DataColumn(label: Text(AppLocalizations.of(context)!.status)),
           DataColumn(label: Text(AppLocalizations.of(context)!.dueDate)),
           DataColumn(label: Text(AppLocalizations.of(context)!.actions)),
@@ -232,7 +238,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     );
   }
 
-  DataRow _buildDataRow(InvoiceWithClient iwc) {
+  DataRow _buildDataRow(InvoiceWithStats iwc) {
     final currencyFormat = NumberFormat.currency(symbol: _currencySymbol, decimalDigits: 2);
     final dateFormat = DateFormat('MMM d, yyyy');
     
@@ -240,6 +246,14 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
       DataCell(Text(iwc.invoice.invoiceNumber, style: const TextStyle(fontWeight: FontWeight.w500))),
       DataCell(Text(iwc.client.name)),
       DataCell(Text(currencyFormat.format(iwc.invoice.totalAmount), style: const TextStyle(fontFamily: 'monospace'))),
+      DataCell(Text(
+        currencyFormat.format(iwc.balance),
+        style: TextStyle(
+          fontFamily: 'monospace',
+          color: iwc.balance > 0 ? AppColors.destructive : AppColors.success,
+          fontWeight: iwc.balance > 0 ? FontWeight.bold : FontWeight.normal,
+        ),
+      )),
       DataCell(_buildStatusChip(iwc.invoice.status)),
       DataCell(Text(dateFormat.format(iwc.invoice.dueDate))),
       DataCell(PopupMenuButton<String>(

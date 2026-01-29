@@ -50,7 +50,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 9; // INCREMENT SCHEMA VERSION
+  int get schemaVersion => 10; // INCREMENT SCHEMA VERSION
 
   @override
   MigrationStrategy get migration {
@@ -106,6 +106,9 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(taxRates);
           await m.createTable(documents);
           await m.createTable(settingsEntries);
+        }
+        if (from < 10) {
+          await m.addColumn(invoices, invoices.discountAmount);
         }
       },
     );
@@ -218,15 +221,21 @@ class AppDatabase extends _$AppDatabase {
       (delete(inventoryItems)..where((i) => i.id.equals(id))).go();
 
   // --- Invoice & Line Item Methods ---
-  Stream<List<InvoiceWithClient>> watchAllInvoicesWithClient() {
-    final query = select(invoices).join(
-        [innerJoin(clients, clients.id.equalsExp(invoices.clientId))]);
+  Stream<List<InvoiceWithStats>> watchAllInvoicesWithStats() {
+    final paidAmount = CustomExpression<double>('(SELECT SUM(amount) FROM payments WHERE invoice_id = invoices.id)');
+    
+    final query = select(invoices).join([
+      innerJoin(clients, clients.id.equalsExp(invoices.clientId)),
+    ]);
+    
+    query.addColumns([paidAmount]);
 
     return query.watch().map((rows) {
       return rows.map((row) {
-        return InvoiceWithClient(
+        return InvoiceWithStats(
           invoice: row.readTable(invoices),
           client: row.readTable(clients),
+          paidAmount: row.read(paidAmount) ?? 0.0,
         );
       }).toList();
     });
@@ -497,10 +506,18 @@ class AppDatabase extends _$AppDatabase {
   }
 }
 
-class InvoiceWithClient {
+class InvoiceWithStats {
   final Invoice invoice;
   final Client client;
-  InvoiceWithClient({required this.invoice, required this.client});
+  final double paidAmount;
+  
+  InvoiceWithStats({
+    required this.invoice,
+    required this.client,
+    required this.paidAmount,
+  });
+
+  double get balance => invoice.totalAmount - paidAmount;
 }
 
 class InvoiceDetails {

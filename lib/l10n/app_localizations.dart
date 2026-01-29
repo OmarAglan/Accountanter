@@ -680,6 +680,18 @@ abstract class AppLocalizations {
   /// **'Subtotal'**
   String get subtotal;
 
+  /// No description provided for @discount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get discount;
+
+  /// No description provided for @balance.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get balance;
+
   /// No description provided for @saveAsDraft.
   ///
   /// In en, this message translates to:
@@ -757,6 +769,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to delete this invoice?'**
   String get confirmDeleteInvoice;
+
+  /// No description provided for @outstandingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding Balance'**
+  String get outstandingBalance;
+
+  /// No description provided for @totalOutstandingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Outstanding Balance'**
+  String get totalOutstandingBalance;
 
   /// No description provided for @addInventoryItem.
   ///
@@ -913,6 +937,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to delete this expense?'**
   String get confirmDeleteExpense;
+
+  /// No description provided for @noPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'No payments found.'**
+  String get noPayments;
+
+  /// No description provided for @recordPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Record Payment'**
+  String get recordPayment;
 
   /// No description provided for @thisMonth.
   ///

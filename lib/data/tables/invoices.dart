@@ -16,6 +16,7 @@ class Invoices extends Table {
   RealColumn get totalAmount => real()();
   RealColumn get taxAmount => real()();
   RealColumn get subtotal => real()();
+  RealColumn get discountAmount => real().withDefault(const Constant(0.0))();
   
   // Status can be 'Draft', 'Pending', 'Paid', 'Overdue'
   TextColumn get status => text()(); 

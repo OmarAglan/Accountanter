@@ -7,6 +7,7 @@ import 'package:accountanter/data/database.dart';
 import 'package:accountanter/theme/app_colors.dart';
 import 'widgets/inventory_summary_card.dart';
 import 'widgets/add_edit_inventory_dialog.dart';
+import '../main/widgets/empty_state.dart';
 
 // New data class to hold the result of the join
 class InventoryItemWithDetails {
@@ -325,9 +326,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
             ),
           ),
            if (items.isEmpty)
-            Padding(
-              padding: EdgeInsets.all(32.0),
-              child: Center(child: Text(AppLocalizations.of(context)!.noInventoryItems)),
+            EmptyState(
+              icon: LucideIcons.package,
+              title: AppLocalizations.of(context)!.noInventoryItems,
+              description: 'No inventory items found. Add products to track stock levels.',
+              actionLabel: AppLocalizations.of(context)!.addInventoryItem,
+              onAction: _showAddItemDialog,
             )
         ],
       ),

@@ -51,6 +51,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
   late TextEditingController _issueDateController;
   late TextEditingController _dueDateController;
   late TextEditingController _notesController;
+  late TextEditingController _discountController;
   final List<LineItemControllers> _lineItemControllers = [];
   DateTime _issueDate = DateTime.now();
   DateTime? _dueDate;
@@ -62,6 +63,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
     _issueDateController = TextEditingController();
     _dueDateController = TextEditingController();
     _notesController = TextEditingController();
+    _discountController = TextEditingController(text: '0.00');
 
     _loadDefaults();
     if (_isEditing) {
@@ -101,6 +103,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
         _dueDate = details.invoice.dueDate;
         _dueDateController.text = _dueDate != null ? DateFormat('yyyy-MM-dd').format(_dueDate!) : '';
         _notesController.text = details.invoice.notes ?? '';
+        _discountController.text = details.invoice.discountAmount.toStringAsFixed(2);
 
         for (var item in details.lineItems) {
           _lineItemControllers.add(LineItemControllers(
@@ -122,6 +125,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
     _issueDateController.dispose();
     _dueDateController.dispose();
     _notesController.dispose();
+    _discountController.dispose();
     for (var controller in _lineItemControllers) {
       controller.dispose();
     }
@@ -179,8 +183,9 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
     }
     
     final subtotal = _calculateSubtotal();
-    final tax = subtotal * (_taxRatePercent / 100.0);
-    final total = subtotal + tax;
+    final discount = double.tryParse(_discountController.text) ?? 0.0;
+    final tax = (subtotal - discount) * (_taxRatePercent / 100.0);
+    final total = (subtotal - discount) + tax;
 
     final invoiceCompanion = InvoicesCompanion(
       id: _isEditing ? Value(widget.invoiceId!) : const Value.absent(),
@@ -191,6 +196,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
       subtotal: Value(subtotal),
       taxAmount: Value(tax),
       totalAmount: Value(total),
+      discountAmount: Value(discount),
       status: Value(status),
       notes: Value(_notesController.text),
     );
@@ -541,8 +547,9 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
 
   Widget _buildSummaryAndNotes() {
     final subtotal = _calculateSubtotal();
-    final tax = subtotal * (_taxRatePercent / 100.0);
-    final total = subtotal + tax;
+    final discount = double.tryParse(_discountController.text) ?? 0.0;
+    final tax = (subtotal - discount) * (_taxRatePercent / 100.0);
+    final total = (subtotal - discount) + tax;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -550,7 +557,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
           return Column(children: [
             _buildNotesCard(),
             const SizedBox(height: 16),
-            _buildSummaryCard(subtotal, tax, total),
+            _buildSummaryCard(subtotal, discount, tax, total),
           ]);
         }
         return Row(
@@ -558,7 +565,7 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
           children: [
             Expanded(flex: 2, child: _buildNotesCard()),
             const SizedBox(width: 24),
-            Expanded(flex: 1, child: _buildSummaryCard(subtotal, tax, total)),
+            Expanded(flex: 1, child: _buildSummaryCard(subtotal, discount, tax, total)),
           ],
         );
       }
@@ -579,22 +586,37 @@ class _InvoiceEditorScreenState extends State<InvoiceEditorScreen> {
               maxLines: 4,
               decoration: InputDecoration(hintText: AppLocalizations.of(context)!.notes),
             ),
+            const SizedBox(height: 24),
+            Text(AppLocalizations.of(context)!.discount, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _discountController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+              decoration: InputDecoration(
+                prefixText: _currencySymbol,
+                hintText: AppLocalizations.of(context)!.pleaseEnter,
+                isDense: true,
+              ),
+              onChanged: (_) => _updateTotals(),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSummaryCard(double subtotal, double tax, double total) {
+  Widget _buildSummaryCard(double subtotal, double discount, double tax, double total) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Summary', style: Theme.of(context).textTheme.titleLarge),
+            Text(AppLocalizations.of(context)!.overview, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             _buildSummaryRow('${AppLocalizations.of(context)!.subtotal}:', subtotal),
+            _buildSummaryRow('${AppLocalizations.of(context)!.discount}:', -discount),
             _buildSummaryRow('${AppLocalizations.of(context)!.tax} (${_taxRatePercent.toStringAsFixed(0)}%):', tax),
             const Divider(height: 24),
             _buildSummaryRow('${AppLocalizations.of(context)!.total}:', total, isTotal: true),

@@ -78,8 +78,8 @@ class _AddEditPaymentDialogState extends State<AddEditPaymentDialog> {
     });
   }
 
-  Future<List<InvoiceWithClient>> _loadInvoices() async {
-    return _database.watchAllInvoicesWithClient().first;
+  Future<List<InvoiceWithStats>> _loadInvoices() async {
+    return _database.watchAllInvoicesWithStats().first;
   }
 
   Future<void> _save() async {
@@ -120,23 +120,36 @@ class _AddEditPaymentDialogState extends State<AddEditPaymentDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                FutureBuilder<List<InvoiceWithClient>>(
+                Future<List<InvoiceWithStats>>(_loadInvoices),
+                FutureBuilder<List<InvoiceWithStats>>(
                   future: _loadInvoices(),
                   builder: (context, snapshot) {
                     final invoices = snapshot.data ?? [];
 
-                    return DropdownButtonFormField<InvoiceWithClient>(
+                    return DropdownButtonFormField<InvoiceWithStats>(
                       key: ValueKey(_selectedInvoice?.invoice.id),
-                      initialValue: _selectedInvoice,
+                      initialValue: _selectedInvoice != null ? invoices.firstWhere((i) => i.invoice.id == _selectedInvoice!.invoice.id, orElse: () => _selectedInvoice as InvoiceWithStats) : null,
                       isExpanded: true,
-                      decoration: InputDecoration(labelText: '${l10n.invoices} *'),
+                      decoration: InputDecoration(
+                        labelText: '${l10n.invoices} *',
+                        helperText: _selectedInvoice is InvoiceWithStats 
+                          ? 'Balance: ${NumberFormat.currency(symbol: _currencySymbol).format((_selectedInvoice as InvoiceWithStats).balance)}'
+                          : null,
+                      ),
                       items: invoices.map((iwc) {
                         return DropdownMenuItem(
                           value: iwc,
-                          child: Text('${iwc.invoice.invoiceNumber} • ${iwc.client.name}'),
+                          child: Text('${iwc.invoice.invoiceNumber} • ${iwc.client.name} (Bal: ${NumberFormat.currency(symbol: _currencySymbol).format(iwc.balance)})'),
                         );
                       }).toList(),
-                      onChanged: (value) => setState(() => _selectedInvoice = value),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedInvoice = value;
+                          if (!_isEditing && value != null) {
+                            _amountController.text = value.balance.toStringAsFixed(2);
+                          }
+                        });
+                      },
                       validator: (value) => value == null ? l10n.fieldRequired : null,
                     );
                   },

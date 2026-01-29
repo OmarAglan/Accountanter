@@ -8,6 +8,7 @@ import 'package:accountanter/data/database.dart';
 import 'package:accountanter/theme/app_colors.dart';
 import 'widgets/expense_summary_card.dart';
 import 'widgets/add_edit_expense_dialog.dart';
+import '../main/widgets/empty_state.dart';
 
 // New data class to hold the result of the join
 class ExpenseWithDetails {
@@ -334,9 +335,12 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             ),
           ),
           if (expenses.isEmpty)
-            Padding(
-              padding: EdgeInsets.all(32.0),
-              child: Center(child: Text(AppLocalizations.of(context)!.noExpenses)),
+            EmptyState(
+              icon: LucideIcons.dollarSign,
+              title: AppLocalizations.of(context)!.noExpenses,
+              description: 'No expenses found. Track your business spending to see reports.',
+              actionLabel: AppLocalizations.of(context)!.addExpense,
+              onAction: _showAddExpenseDialog,
             )
         ],
       ),

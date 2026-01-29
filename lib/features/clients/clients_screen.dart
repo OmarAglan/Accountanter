@@ -8,6 +8,7 @@ import 'package:accountanter/data/database.dart';
 import 'package:accountanter/theme/app_colors.dart';
 import 'widgets/add_edit_client_dialog.dart';
 import 'widgets/client_summary_card.dart'; // We'll keep this widget as is
+import '../main/widgets/empty_state.dart';
 
 class ClientsScreen extends StatefulWidget {
   const ClientsScreen({super.key});
@@ -250,11 +251,14 @@ class _ClientsScreenState extends State<ClientsScreen> {
               rows: clients.map((client) => _buildDataRow(client)).toList(),
             ),
           ),
-           if (clients.isEmpty)
-            Padding(
-              padding: EdgeInsets.all(32.0),
-              child: Center(child: Text(AppLocalizations.of(context)!.noClients)),
-            )
+            if (clients.isEmpty)
+              EmptyState(
+                icon: LucideIcons.users,
+                title: AppLocalizations.of(context)!.noClients,
+                description: 'No clients found. Add a client to start recording invoices.',
+                actionLabel: AppLocalizations.of(context)!.addNewClient,
+                onAction: _showAddClientDialog,
+              )
         ],
       ),
     );

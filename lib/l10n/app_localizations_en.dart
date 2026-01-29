@@ -310,6 +310,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subtotal => 'Subtotal';
 
   @override
+  String get discount => 'Discount';
+
+  @override
+  String get balance => 'Balance';
+
+  @override
   String get saveAsDraft => 'Save as Draft';
 
   @override
@@ -348,6 +354,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get confirmDeleteInvoice =>
       'Are you sure you want to delete this invoice?';
+
+  @override
+  String get outstandingBalance => 'Outstanding Balance';
+
+  @override
+  String get totalOutstandingBalance => 'Total Outstanding Balance';
 
   @override
   String get addInventoryItem => 'Add Inventory Item';
@@ -428,6 +440,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get confirmDeleteExpense =>
       'Are you sure you want to delete this expense?';
+
+  @override
+  String get noPayments => 'No payments found.';
+
+  @override
+  String get recordPayment => 'Record Payment';
 
   @override
   String get thisMonth => 'This Month';

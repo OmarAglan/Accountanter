@@ -3467,6 +3467,18 @@ class $InvoicesTable extends Invoices with TableInfo<$InvoicesTable, Invoice> {
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _discountAmountMeta = const VerificationMeta(
+    'discountAmount',
+  );
+  @override
+  late final GeneratedColumn<double> discountAmount = GeneratedColumn<double>(
+    'discount_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
@@ -3507,6 +3519,7 @@ class $InvoicesTable extends Invoices with TableInfo<$InvoicesTable, Invoice> {
     totalAmount,
     taxAmount,
     subtotal,
+    discountAmount,
     status,
     notes,
     createdAt,
@@ -3588,6 +3601,15 @@ class $InvoicesTable extends Invoices with TableInfo<$InvoicesTable, Invoice> {
     } else if (isInserting) {
       context.missing(_subtotalMeta);
     }
+    if (data.containsKey('discount_amount')) {
+      context.handle(
+        _discountAmountMeta,
+        discountAmount.isAcceptableOrUnknown(
+          data['discount_amount']!,
+          _discountAmountMeta,
+        ),
+      );
+    }
     if (data.containsKey('status')) {
       context.handle(
         _statusMeta,
@@ -3649,6 +3671,10 @@ class $InvoicesTable extends Invoices with TableInfo<$InvoicesTable, Invoice> {
         DriftSqlType.double,
         data['${effectivePrefix}subtotal'],
       )!,
+      discountAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}discount_amount'],
+      )!,
       status: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}status'],
@@ -3679,6 +3705,7 @@ class Invoice extends DataClass implements Insertable<Invoice> {
   final double totalAmount;
   final double taxAmount;
   final double subtotal;
+  final double discountAmount;
   final String status;
   final String? notes;
   final DateTime createdAt;
@@ -3691,6 +3718,7 @@ class Invoice extends DataClass implements Insertable<Invoice> {
     required this.totalAmount,
     required this.taxAmount,
     required this.subtotal,
+    required this.discountAmount,
     required this.status,
     this.notes,
     required this.createdAt,
@@ -3706,6 +3734,7 @@ class Invoice extends DataClass implements Insertable<Invoice> {
     map['total_amount'] = Variable<double>(totalAmount);
     map['tax_amount'] = Variable<double>(taxAmount);
     map['subtotal'] = Variable<double>(subtotal);
+    map['discount_amount'] = Variable<double>(discountAmount);
     map['status'] = Variable<String>(status);
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
@@ -3724,6 +3753,7 @@ class Invoice extends DataClass implements Insertable<Invoice> {
       totalAmount: Value(totalAmount),
       taxAmount: Value(taxAmount),
       subtotal: Value(subtotal),
+      discountAmount: Value(discountAmount),
       status: Value(status),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
@@ -3746,6 +3776,7 @@ class Invoice extends DataClass implements Insertable<Invoice> {
       totalAmount: serializer.fromJson<double>(json['totalAmount']),
       taxAmount: serializer.fromJson<double>(json['taxAmount']),
       subtotal: serializer.fromJson<double>(json['subtotal']),
+      discountAmount: serializer.fromJson<double>(json['discountAmount']),
       status: serializer.fromJson<String>(json['status']),
       notes: serializer.fromJson<String?>(json['notes']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -3763,6 +3794,7 @@ class Invoice extends DataClass implements Insertable<Invoice> {
       'totalAmount': serializer.toJson<double>(totalAmount),
       'taxAmount': serializer.toJson<double>(taxAmount),
       'subtotal': serializer.toJson<double>(subtotal),
+      'discountAmount': serializer.toJson<double>(discountAmount),
       'status': serializer.toJson<String>(status),
       'notes': serializer.toJson<String?>(notes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -3778,6 +3810,7 @@ class Invoice extends DataClass implements Insertable<Invoice> {
     double? totalAmount,
     double? taxAmount,
     double? subtotal,
+    double? discountAmount,
     String? status,
     Value<String?> notes = const Value.absent(),
     DateTime? createdAt,
@@ -3790,6 +3823,7 @@ class Invoice extends DataClass implements Insertable<Invoice> {
     totalAmount: totalAmount ?? this.totalAmount,
     taxAmount: taxAmount ?? this.taxAmount,
     subtotal: subtotal ?? this.subtotal,
+    discountAmount: discountAmount ?? this.discountAmount,
     status: status ?? this.status,
     notes: notes.present ? notes.value : this.notes,
     createdAt: createdAt ?? this.createdAt,
@@ -3808,6 +3842,9 @@ class Invoice extends DataClass implements Insertable<Invoice> {
           : this.totalAmount,
       taxAmount: data.taxAmount.present ? data.taxAmount.value : this.taxAmount,
       subtotal: data.subtotal.present ? data.subtotal.value : this.subtotal,
+      discountAmount: data.discountAmount.present
+          ? data.discountAmount.value
+          : this.discountAmount,
       status: data.status.present ? data.status.value : this.status,
       notes: data.notes.present ? data.notes.value : this.notes,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -3825,6 +3862,7 @@ class Invoice extends DataClass implements Insertable<Invoice> {
           ..write('totalAmount: $totalAmount, ')
           ..write('taxAmount: $taxAmount, ')
           ..write('subtotal: $subtotal, ')
+          ..write('discountAmount: $discountAmount, ')
           ..write('status: $status, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt')
@@ -3842,6 +3880,7 @@ class Invoice extends DataClass implements Insertable<Invoice> {
     totalAmount,
     taxAmount,
     subtotal,
+    discountAmount,
     status,
     notes,
     createdAt,
@@ -3858,6 +3897,7 @@ class Invoice extends DataClass implements Insertable<Invoice> {
           other.totalAmount == this.totalAmount &&
           other.taxAmount == this.taxAmount &&
           other.subtotal == this.subtotal &&
+          other.discountAmount == this.discountAmount &&
           other.status == this.status &&
           other.notes == this.notes &&
           other.createdAt == this.createdAt);
@@ -3872,6 +3912,7 @@ class InvoicesCompanion extends UpdateCompanion<Invoice> {
   final Value<double> totalAmount;
   final Value<double> taxAmount;
   final Value<double> subtotal;
+  final Value<double> discountAmount;
   final Value<String> status;
   final Value<String?> notes;
   final Value<DateTime> createdAt;
@@ -3884,6 +3925,7 @@ class InvoicesCompanion extends UpdateCompanion<Invoice> {
     this.totalAmount = const Value.absent(),
     this.taxAmount = const Value.absent(),
     this.subtotal = const Value.absent(),
+    this.discountAmount = const Value.absent(),
     this.status = const Value.absent(),
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -3897,6 +3939,7 @@ class InvoicesCompanion extends UpdateCompanion<Invoice> {
     required double totalAmount,
     required double taxAmount,
     required double subtotal,
+    this.discountAmount = const Value.absent(),
     required String status,
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -3917,6 +3960,7 @@ class InvoicesCompanion extends UpdateCompanion<Invoice> {
     Expression<double>? totalAmount,
     Expression<double>? taxAmount,
     Expression<double>? subtotal,
+    Expression<double>? discountAmount,
     Expression<String>? status,
     Expression<String>? notes,
     Expression<DateTime>? createdAt,
@@ -3930,6 +3974,7 @@ class InvoicesCompanion extends UpdateCompanion<Invoice> {
       if (totalAmount != null) 'total_amount': totalAmount,
       if (taxAmount != null) 'tax_amount': taxAmount,
       if (subtotal != null) 'subtotal': subtotal,
+      if (discountAmount != null) 'discount_amount': discountAmount,
       if (status != null) 'status': status,
       if (notes != null) 'notes': notes,
       if (createdAt != null) 'created_at': createdAt,
@@ -3945,6 +3990,7 @@ class InvoicesCompanion extends UpdateCompanion<Invoice> {
     Value<double>? totalAmount,
     Value<double>? taxAmount,
     Value<double>? subtotal,
+    Value<double>? discountAmount,
     Value<String>? status,
     Value<String?>? notes,
     Value<DateTime>? createdAt,
@@ -3958,6 +4004,7 @@ class InvoicesCompanion extends UpdateCompanion<Invoice> {
       totalAmount: totalAmount ?? this.totalAmount,
       taxAmount: taxAmount ?? this.taxAmount,
       subtotal: subtotal ?? this.subtotal,
+      discountAmount: discountAmount ?? this.discountAmount,
       status: status ?? this.status,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
@@ -3991,6 +4038,9 @@ class InvoicesCompanion extends UpdateCompanion<Invoice> {
     if (subtotal.present) {
       map['subtotal'] = Variable<double>(subtotal.value);
     }
+    if (discountAmount.present) {
+      map['discount_amount'] = Variable<double>(discountAmount.value);
+    }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
     }
@@ -4014,6 +4064,7 @@ class InvoicesCompanion extends UpdateCompanion<Invoice> {
           ..write('totalAmount: $totalAmount, ')
           ..write('taxAmount: $taxAmount, ')
           ..write('subtotal: $subtotal, ')
+          ..write('discountAmount: $discountAmount, ')
           ..write('status: $status, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt')
@@ -9609,6 +9660,7 @@ typedef $$InvoicesTableCreateCompanionBuilder =
       required double totalAmount,
       required double taxAmount,
       required double subtotal,
+      Value<double> discountAmount,
       required String status,
       Value<String?> notes,
       Value<DateTime> createdAt,
@@ -9623,6 +9675,7 @@ typedef $$InvoicesTableUpdateCompanionBuilder =
       Value<double> totalAmount,
       Value<double> taxAmount,
       Value<double> subtotal,
+      Value<double> discountAmount,
       Value<String> status,
       Value<String?> notes,
       Value<DateTime> createdAt,
@@ -9728,6 +9781,11 @@ class $$InvoicesTableFilterComposer
 
   ColumnFilters<double> get subtotal => $composableBuilder(
     column: $table.subtotal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get discountAmount => $composableBuilder(
+    column: $table.discountAmount,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9864,6 +9922,11 @@ class $$InvoicesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get discountAmount => $composableBuilder(
+    column: $table.discountAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -9936,6 +9999,11 @@ class $$InvoicesTableAnnotationComposer
 
   GeneratedColumn<double> get subtotal =>
       $composableBuilder(column: $table.subtotal, builder: (column) => column);
+
+  GeneratedColumn<double> get discountAmount => $composableBuilder(
+    column: $table.discountAmount,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
@@ -10060,6 +10128,7 @@ class $$InvoicesTableTableManager
                 Value<double> totalAmount = const Value.absent(),
                 Value<double> taxAmount = const Value.absent(),
                 Value<double> subtotal = const Value.absent(),
+                Value<double> discountAmount = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -10072,6 +10141,7 @@ class $$InvoicesTableTableManager
                 totalAmount: totalAmount,
                 taxAmount: taxAmount,
                 subtotal: subtotal,
+                discountAmount: discountAmount,
                 status: status,
                 notes: notes,
                 createdAt: createdAt,
@@ -10086,6 +10156,7 @@ class $$InvoicesTableTableManager
                 required double totalAmount,
                 required double taxAmount,
                 required double subtotal,
+                Value<double> discountAmount = const Value.absent(),
                 required String status,
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -10098,6 +10169,7 @@ class $$InvoicesTableTableManager
                 totalAmount: totalAmount,
                 taxAmount: taxAmount,
                 subtotal: subtotal,
+                discountAmount: discountAmount,
                 status: status,
                 notes: notes,
                 createdAt: createdAt,

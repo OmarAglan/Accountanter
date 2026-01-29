@@ -5,6 +5,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:accountanter/theme/app_colors.dart';
 import 'widgets/add_edit_payment_dialog.dart';
+import '../main/widgets/empty_state.dart';
 
 class PaymentsScreen extends StatefulWidget {
   const PaymentsScreen({super.key});
@@ -174,9 +175,12 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                   ),
                   const Divider(height: 1),
                   if (filtered.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(32.0),
-                      child: Center(child: Text('No payments found.')),
+                    EmptyState(
+                      icon: LucideIcons.creditCard,
+                      title: l10n.noPayments,
+                      description: 'No payments found. Record a payment for an outstanding invoice.',
+                      actionLabel: l10n.recordPayment,
+                      onAction: _openAddPaymentDialog,
                     )
                   else
                     SingleChildScrollView(

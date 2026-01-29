@@ -308,6 +308,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get subtotal => 'المجموع الفرعي';
 
   @override
+  String get discount => 'الخصم';
+
+  @override
+  String get balance => 'الرصيد';
+
+  @override
   String get saveAsDraft => 'حفظ كمسودة';
 
   @override
@@ -345,6 +351,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get confirmDeleteInvoice => 'هل أنت متأكد من حذف هذه الفاتورة؟';
+
+  @override
+  String get outstandingBalance => 'الرصيد المستحق';
+
+  @override
+  String get totalOutstandingBalance => 'إجمالي المستحقة';
 
   @override
   String get addInventoryItem => 'إضافة عنصر مخزون';
@@ -423,6 +435,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get confirmDeleteExpense => 'هل أنت متأكد من حذف هذا المصروف؟';
+
+  @override
+  String get noPayments => 'لم يتم العثور على مدفوعات.';
+
+  @override
+  String get recordPayment => 'تسجيل دفعة';
 
   @override
   String get thisMonth => 'هذا الشهر';
