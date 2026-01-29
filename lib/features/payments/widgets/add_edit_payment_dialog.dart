@@ -6,10 +6,12 @@ import 'package:intl/intl.dart';
 
 class AddEditPaymentDialog extends StatefulWidget {
   final PaymentWithInvoiceAndClient? payment;
+  final InvoiceWithStats? initialInvoice;
 
   const AddEditPaymentDialog({
     super.key,
     this.payment,
+    this.initialInvoice,
   });
 
   @override
@@ -46,10 +48,13 @@ class _AddEditPaymentDialogState extends State<AddEditPaymentDialog> {
       _notesController.text = existing.payment.notes ?? '';
       _method = existing.payment.method;
       _selectedInvoice = InvoiceWithStats(
-        invoice: existing.invoice, 
+        invoice: existing.invoice,
         client: existing.client,
         paidAmount: 0.0, // Mocked for initial value
       );
+    } else if (widget.initialInvoice != null) {
+      _selectedInvoice = widget.initialInvoice;
+      _amountController.text = widget.initialInvoice!.balance.toStringAsFixed(2);
     }
   }
 
@@ -129,31 +134,53 @@ class _AddEditPaymentDialogState extends State<AddEditPaymentDialog> {
                   builder: (context, snapshot) {
                     final invoices = snapshot.data ?? [];
 
+                    final options = _isEditing
+                        ? invoices
+                        : invoices.where((i) => i.balance > 0).toList();
+
+                    final selected = _selectedInvoice;
+                    final hasSelected = selected != null &&
+                        options.any((i) => i.invoice.id == selected.invoice.id);
+
+                    final effectiveOptions = (!hasSelected && selected != null)
+                        ? <InvoiceWithStats>[selected, ...options]
+                        : options;
+
+                    final effectiveSelected = selected == null
+                        ? null
+                        : effectiveOptions.firstWhere(
+                            (i) => i.invoice.id == selected.invoice.id,
+                          );
+
                     return DropdownButtonFormField<InvoiceWithStats>(
-                      key: ValueKey(_selectedInvoice?.invoice.id),
-                      initialValue: _selectedInvoice != null ? invoices.firstWhere((i) => i.invoice.id == _selectedInvoice!.invoice.id, orElse: () => _selectedInvoice as InvoiceWithStats) : null,
+                      key: ValueKey(effectiveSelected?.invoice.id),
+                      initialValue: effectiveSelected,
                       isExpanded: true,
                       decoration: InputDecoration(
                         labelText: '${l10n.invoices} *',
-                        helperText: _selectedInvoice is InvoiceWithStats 
-                          ? 'Balance: ${NumberFormat.currency(symbol: _currencySymbol).format((_selectedInvoice as InvoiceWithStats).balance)}'
-                          : null,
+                        helperText: effectiveSelected == null
+                            ? null
+                            : 'Balance: ${NumberFormat.currency(symbol: _currencySymbol).format(effectiveSelected.balance)}',
                       ),
-                      items: invoices.map((iwc) {
+                      items: effectiveOptions.map((iwc) {
                         return DropdownMenuItem(
                           value: iwc,
-                          child: Text('${iwc.invoice.invoiceNumber} • ${iwc.client.name} (Bal: ${NumberFormat.currency(symbol: _currencySymbol).format(iwc.balance)})'),
+                          child: Text(
+                            '${iwc.invoice.invoiceNumber} • ${iwc.client.name} (Bal: ${NumberFormat.currency(symbol: _currencySymbol).format(iwc.balance)})',
+                          ),
                         );
                       }).toList(),
                       onChanged: (value) {
                         setState(() {
                           _selectedInvoice = value;
                           if (!_isEditing && value != null) {
-                            _amountController.text = value.balance.toStringAsFixed(2);
+                            _amountController.text =
+                                value.balance.toStringAsFixed(2);
                           }
                         });
                       },
-                      validator: (value) => value == null ? l10n.fieldRequired : null,
+                      validator: (value) =>
+                          value == null ? l10n.fieldRequired : null,
                     );
                   },
                 ),

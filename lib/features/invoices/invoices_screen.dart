@@ -6,6 +6,7 @@ import 'package:accountanter/data/database.dart';
 import 'package:accountanter/theme/app_colors.dart';
 import 'widgets/invoice_summary_card.dart';
 import 'invoice_editor_screen.dart';
+import '../payments/widgets/add_edit_payment_dialog.dart';
 import '../main/widgets/empty_state.dart';
 import '../../utils/csv_export_util.dart';
 
@@ -289,13 +290,25 @@ class _InvoicesScreenState extends State<InvoicesScreen>
         onSelected: (value) {
           if (value == 'edit') {
             _navigateToInvoiceEditor(invoiceId: iwc.invoice.id);
+          } else if (value == 'record_payment') {
+            showDialog(
+              context: context,
+              builder: (context) => AddEditPaymentDialog(initialInvoice: iwc),
+            );
           } else if (value == 'delete') {
             _confirmAndDeleteInvoice(iwc.invoice);
           }
         },
         itemBuilder: (context) => <PopupMenuEntry<String>>[
-          PopupMenuItem<String>(value: 'edit', child: Text(AppLocalizations.of(context)!.edit)),
-          PopupMenuItem<String>(value: 'delete', child: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: AppColors.destructive))),
+          PopupMenuItem<String>(
+              value: 'edit', child: Text(AppLocalizations.of(context)!.edit)),
+          PopupMenuItem<String>(
+              value: 'record_payment',
+              child: Text(AppLocalizations.of(context)!.recordPayment)),
+          PopupMenuItem<String>(
+              value: 'delete',
+              child: Text(AppLocalizations.of(context)!.delete,
+                  style: const TextStyle(color: AppColors.destructive))),
         ],
         icon: const Icon(LucideIcons.ellipsisVertical, size: 16),
       )),
