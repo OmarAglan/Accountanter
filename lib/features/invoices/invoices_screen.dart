@@ -166,7 +166,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
       ],
     );
   }
-  }
 
   Widget _buildSummaryCards(List<InvoiceWithStats> invoices) {
     final totalRevenue = invoices.where((i) => i.invoice.status == 'Paid').fold(0.0, (sum, i) => sum + i.invoice.totalAmount);

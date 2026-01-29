@@ -120,7 +120,6 @@ class _AddEditPaymentDialogState extends State<AddEditPaymentDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Future<List<InvoiceWithStats>>(_loadInvoices),
                 FutureBuilder<List<InvoiceWithStats>>(
                   future: _loadInvoices(),
                   builder: (context, snapshot) {
@@ -128,7 +127,7 @@ class _AddEditPaymentDialogState extends State<AddEditPaymentDialog> {
 
                     return DropdownButtonFormField<InvoiceWithStats>(
                       key: ValueKey(_selectedInvoice?.invoice.id),
-                      initialValue: _selectedInvoice != null ? invoices.firstWhere((i) => i.invoice.id == _selectedInvoice!.invoice.id, orElse: () => _selectedInvoice as InvoiceWithStats) : null,
+                      value: _selectedInvoice != null ? invoices.firstWhere((i) => i.invoice.id == _selectedInvoice!.invoice.id, orElse: () => _selectedInvoice as InvoiceWithStats) : null,
                       isExpanded: true,
                       decoration: InputDecoration(
                         labelText: '${l10n.invoices} *',

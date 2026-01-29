@@ -257,7 +257,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       ],
     );
   }
-  }
   
   Widget _buildSummaryCards(List<Expense> expenses) {
     final totalExpenses = expenses.fold(0.0, (sum, e) => sum + e.amount);
